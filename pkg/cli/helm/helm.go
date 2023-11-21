@@ -31,6 +31,7 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/registry"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
+	dockerauth "oras.land/oras-go/pkg/auth/docker"
 )
 
 const (
@@ -45,9 +46,24 @@ const (
 // returning the configuration object and an error if one occurs.
 func HelmConfig(builder *strings.Builder, flags *genericclioptions.ConfigFlags) (*helm.Configuration, error) {
 	hc := helm.Configuration{}
+
+	// Prevent auth configuration from being read from the user's system. This is a workaround
+	// for the case where the user has stale credentials in their docker config. This is very
+	// common for ghcr.io where we host our chart :(.
+	//
+	// We need to create the struct directly to avoid reading Docker's default config. All
+	// of the other options will include the default config.
+	authorizer := &dockerauth.Client{}
+	client, err := registry.NewClient(registry.ClientOptAuthorizer(authorizer))
+	if err != nil {
+		return nil, err
+	}
+
+	hc.RegistryClient = client
+
 	// helmDriver is "secret" to make the backend storage driver
 	// use kubernetes secrets.
-	err := hc.Init(flags, *flags.Namespace, helmDriverSecret, func(format string, v ...any) {
+	err = hc.Init(flags, *flags.Namespace, helmDriverSecret, func(format string, v ...any) {
 		builder.WriteString(fmt.Sprintf(format, v...))
 		builder.WriteRune('\n')
 	})
@@ -79,10 +95,8 @@ func locateChartFile(dirPath string) (string, error) {
 }
 
 func helmChartFromContainerRegistry(version string, config *helm.Configuration, repoUrl string, releaseName string) (*chart.Chart, error) {
-	pull := helm.NewPull()
+	pull := helm.NewPullWithOpts(helm.WithConfig(config))
 	pull.Settings = &cli.EnvSettings{}
-	pullopt := helm.WithConfig(config)
-	pullopt(pull)
 
 	// If version isn't set, it will use the latest version.
 	if version != "" {
@@ -116,14 +130,6 @@ func helmChartFromContainerRegistry(version string, config *helm.Configuration, 
 		// repo URL + the releaseName as the chartRef.
 		// pull.Run("oci://ghcr.io/radius-project/helm-chart/radius")
 		chartRef = fmt.Sprintf("%s/%s", repoUrl, releaseName)
-
-		// Since we are using an OCI registry, we need to set the registry client
-		registryClient, err := registry.NewClient()
-		if err != nil {
-			return nil, err
-		}
-
-		pull.SetRegistryClient(registryClient)
 	}
 
 	_, err = pull.Run(chartRef)
