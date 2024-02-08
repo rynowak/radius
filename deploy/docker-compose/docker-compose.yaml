@@ -1,0 +1,29 @@
+services:
+  ucp:
+    image: ghcr.io/radius-project/ucpd:latest
+    config: 
+      - source: ucpd-config
+        target: /etc/ucpd/ucpd-config.yaml
+    environment:
+      - PORT=9000
+    networks:
+    - radius
+
+  deployment-engine:
+    image: ghcr.io/radius-project/deployment-engine:latest
+    networks:
+    - radius
+
+  applications-rp:
+    image: ghcr.io/radius-project/applications-rp:latest
+    networks:
+    - radius
+
+configs:
+  ucpd-config:
+    file: ../../cmd/ucpd/ucpd-config.yaml
+  applications-rp-config:
+    file: ./applications-rp-config.yaml
+
+networks:
+  radius: {}
