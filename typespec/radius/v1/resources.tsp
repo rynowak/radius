@@ -93,6 +93,12 @@ model EnvironmentCompute {
   identity?: IdentitySettings;
 }
 
+@doc("Configuration for an ECS compute cluster.")
+model EcsCompute extends EnvironmentCompute {
+  @doc("The ECS compute kind")
+  kind: "ecs";
+}
+
 @doc("The Kubernetes compute configuration")
 model KubernetesCompute extends EnvironmentCompute {
   @doc("The Kubernetes compute kind")

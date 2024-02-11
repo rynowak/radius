@@ -123,7 +123,7 @@ func (dp *deploymentProcessor) Render(ctx context.Context, resourceID resources.
 		envOptions.Namespace = c.KubernetesCompute.Namespace
 	}
 
-	appOptions, err := dp.getAppOptions(ctx, &app.Properties)
+	appOptions, err := dp.getAppOptions(ctx, app)
 	if err != nil {
 		return renderers.RendererOutput{}, err
 	}
@@ -384,6 +384,8 @@ func (dp *deploymentProcessor) getEnvOptions(ctx context.Context, env *corerp_dm
 	publicEndpointOverride := os.Getenv("RADIUS_PUBLIC_ENDPOINT_OVERRIDE")
 
 	envOpts := renderers.EnvironmentOptions{
+		ID:             env.ID,
+		Name:           env.Name,
 		CloudProviders: &env.Properties.Providers,
 	}
 
@@ -391,11 +393,17 @@ func (dp *deploymentProcessor) getEnvOptions(ctx context.Context, env *corerp_dm
 	switch env.Properties.Compute.Kind {
 	case rpv1.KubernetesComputeKind:
 		kubeProp := &env.Properties.Compute.KubernetesCompute
+		envOpts.Kind = string(rpv1.KubernetesComputeKind)
 
 		if kubeProp.Namespace == "" {
 			return renderers.EnvironmentOptions{}, errors.New("kubernetes' namespace is not specified")
 		}
 		envOpts.Namespace = kubeProp.Namespace
+
+	case rpv1.ECSComputeKind:
+		envOpts.Kind = string(rpv1.ECSComputeKind)
+		ecsProp := &env.Properties.Compute.ECSCompute
+		envOpts.ClusterID = ecsProp.ResourceID
 
 	default:
 		return renderers.EnvironmentOptions{}, fmt.Errorf("%s is unsupported", env.Properties.Compute.Kind)
@@ -467,11 +475,14 @@ func (dp *deploymentProcessor) getEnvOptions(ctx context.Context, env *corerp_dm
 }
 
 // getAppOptions: Populates and Returns ApplicationOptions.
-func (dp *deploymentProcessor) getAppOptions(ctx context.Context, appProp *corerp_dm.ApplicationProperties) (renderers.ApplicationOptions, error) {
-	appOpts := renderers.ApplicationOptions{}
+func (dp *deploymentProcessor) getAppOptions(ctx context.Context, application *corerp_dm.Application) (renderers.ApplicationOptions, error) {
+	appOpts := renderers.ApplicationOptions{
+		ID:   application.ID,
+		Name: application.Name,
+	}
 
 	// Get Application KubernetesMetadata Info
-	if ext := corerp_dm.FindExtension(appProp.Extensions, corerp_dm.KubernetesMetadata); ext != nil && ext.KubernetesMetadata != nil {
+	if ext := corerp_dm.FindExtension(application.Properties.Extensions, corerp_dm.KubernetesMetadata); ext != nil && ext.KubernetesMetadata != nil {
 		appOpts.KubernetesMetadata = ext.KubernetesMetadata
 	}
 

@@ -321,6 +321,27 @@ type DaprStateStoreResourceUpdateProperties struct {
 	Version *string
 }
 
+// EcsCompute - Configuration for an ECS compute cluster.
+type EcsCompute struct {
+	// REQUIRED; Discriminator property for EnvironmentCompute.
+	Kind *string
+
+	// Configuration for supported external identity providers
+	Identity *IdentitySettings
+
+	// The resource id of the compute resource for application environment.
+	ResourceID *string
+}
+
+// GetEnvironmentCompute implements the EnvironmentComputeClassification interface for type EcsCompute.
+func (e *EcsCompute) GetEnvironmentCompute() *EnvironmentCompute {
+	return &EnvironmentCompute{
+		Identity: e.Identity,
+		Kind: e.Kind,
+		ResourceID: e.ResourceID,
+	}
+}
+
 // EnvironmentCompute - Represents backing compute resource
 type EnvironmentCompute struct {
 	// REQUIRED; Discriminator property for EnvironmentCompute.

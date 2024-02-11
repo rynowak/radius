@@ -69,6 +69,10 @@ func CreateAppScopedNamespace(ctx context.Context, newResource, oldResource *dat
 				newResource.Properties.Environment, err.Error())), nil
 		}
 
+		if envNamespace == "" {
+			return nil, nil
+		}
+
 		namespace := fmt.Sprintf("%s-%s", envNamespace, serviceCtx.ResourceID.Name())
 		if !kubernetes.IsValidObjectName(namespace) {
 			return rest.NewBadRequestResponse(fmt.Sprintf("Application namespace '%s' could not be created: the combination of application and environment names is too long.",

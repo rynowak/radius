@@ -14,14 +14,14 @@ require (
 	github.com/Azure/secrets-store-csi-driver-provider-azure v1.4.1
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d
 	github.com/agnivade/levenshtein v1.1.1
-	github.com/aws/aws-sdk-go-v2 v1.19.1
-	github.com/aws/aws-sdk-go-v2/config v1.18.30
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.29
-	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.11.16
-	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.33.0
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.108.1
-	github.com/aws/aws-sdk-go-v2/service/sts v1.20.1
-	github.com/aws/smithy-go v1.13.5
+	github.com/aws/aws-sdk-go-v2 v1.25.3
+	github.com/aws/aws-sdk-go-v2/config v1.26.6
+	github.com/aws/aws-sdk-go-v2/credentials v1.16.16
+	github.com/aws/aws-sdk-go-v2/service/cloudcontrol v1.15.7
+	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.43.0
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.146.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.26.7
+	github.com/aws/smithy-go v1.20.1
 	github.com/charmbracelet/bubbles v0.16.1
 	github.com/charmbracelet/bubbletea v0.24.2
 	github.com/charmbracelet/lipgloss v0.7.1
@@ -93,6 +93,18 @@ require (
 )
 
 require (
+	cloud.google.com/go v0.110.4 // indirect
+	cloud.google.com/go/compute v1.20.1 // indirect
+	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/iam v1.1.1 // indirect
+	cloud.google.com/go/storage v1.30.1 // indirect
+	github.com/aws/aws-sdk-go v1.44.122 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ecs v1.38.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.27.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/iam v1.29.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.10.4 // indirect
+	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.29.2 // indirect
+	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/tidwall/gjson v1.14.0 // indirect
@@ -119,13 +131,13 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.13.6 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.36 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.30 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.37 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.30 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.12.14 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.14 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.11 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.3 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.3 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.7.3 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.18.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.21.7 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymanbagabas/go-udiff v0.1.3 // indirect
 	github.com/benbjohnson/clock v1.1.0 // indirect

@@ -512,6 +512,48 @@ func (d *DaprSidecarExtension) GetExtension() *Extension {
 	}
 }
 
+// EcsCompute - Configuration for an ECS compute cluster.
+type EcsCompute struct {
+	// REQUIRED; Discriminator property for EnvironmentCompute.
+	Kind *string
+
+	// Configuration for supported external identity providers
+	Identity *IdentitySettings
+
+	// The resource id of the compute resource for application environment.
+	ResourceID *string
+}
+
+// GetEnvironmentCompute implements the EnvironmentComputeClassification interface for type EcsCompute.
+func (e *EcsCompute) GetEnvironmentCompute() *EnvironmentCompute {
+	return &EnvironmentCompute{
+		Identity: e.Identity,
+		Kind: e.Kind,
+		ResourceID: e.ResourceID,
+	}
+}
+
+// EcsComputeUpdate - Configuration for an ECS compute cluster.
+type EcsComputeUpdate struct {
+	// REQUIRED; Discriminator property for EnvironmentCompute.
+	Kind *string
+
+	// Configuration for supported external identity providers
+	Identity *IdentitySettingsUpdate
+
+	// The resource id of the compute resource for application environment.
+	ResourceID *string
+}
+
+// GetEnvironmentComputeUpdate implements the EnvironmentComputeUpdateClassification interface for type EcsComputeUpdate.
+func (e *EcsComputeUpdate) GetEnvironmentComputeUpdate() *EnvironmentComputeUpdate {
+	return &EnvironmentComputeUpdate{
+		Identity: e.Identity,
+		Kind: e.Kind,
+		ResourceID: e.ResourceID,
+	}
+}
+
 // EnvironmentCompute - Represents backing compute resource
 type EnvironmentCompute struct {
 	// REQUIRED; Discriminator property for EnvironmentCompute.

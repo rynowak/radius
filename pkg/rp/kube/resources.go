@@ -57,8 +57,7 @@ func FindNamespaceByEnvID(ctx context.Context, sp dataprovider.DataStorageProvid
 	}
 
 	if env.Properties.Compute.Kind != rpv1.KubernetesComputeKind {
-		err = errors.New("cannot get namespace because the current environment is not Kubernetes")
-		return
+		return "", nil
 	}
 
 	namespace = id.Name()

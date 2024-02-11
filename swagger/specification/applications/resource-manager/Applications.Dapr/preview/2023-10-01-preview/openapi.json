@@ -1419,6 +1419,17 @@
         }
       }
     },
+    "EcsCompute": {
+      "type": "object",
+      "description": "Configuration for an ECS compute cluster.",
+      "properties": {},
+      "allOf": [
+        {
+          "$ref": "#/definitions/EnvironmentCompute"
+        }
+      ],
+      "x-ms-discriminator-value": "ecs"
+    },
     "EnvironmentCompute": {
       "type": "object",
       "description": "Represents backing compute resource",

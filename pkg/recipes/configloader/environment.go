@@ -97,6 +97,9 @@ func getConfiguration(environment *v20231001preview.EnvironmentResource, applica
 			config.Runtime.Kubernetes.Namespace = config.Runtime.Kubernetes.EnvironmentNamespace
 		}
 
+	case *v20231001preview.EcsCompute:
+		// Nothing special to do here.
+
 	default:
 		return nil, ErrUnsupportedComputeKind
 	}

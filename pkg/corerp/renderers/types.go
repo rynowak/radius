@@ -62,6 +62,12 @@ type RendererDependency struct {
 
 // EnvironmentOptions represents the options for the linked environment resource.
 type EnvironmentOptions struct {
+	// ID is the ID of the environment.
+	ID string
+
+	// Name is the name of the environment
+	Name string
+
 	// Namespace represents the Kubernetes namespace.
 	Namespace string
 	// Providers represents the cloud provider's configurations.
@@ -74,10 +80,22 @@ type EnvironmentOptions struct {
 	KubernetesMetadata *datamodel.KubeMetadataExtension
 	// Simulated represents whether the environment is a simulated environment.
 	Simulated bool
+
+	// Kind is the kind of the environment.
+	Kind string
+
+	// ClusterID is the ID of the ECS cluster.
+	ClusterID string
 }
 
 // ApplicationOptions represents the options for the linked application resource.
 type ApplicationOptions struct {
+	// ID is the ID of the application.
+	ID string
+
+	// Name is the name of the application
+	Name string
+
 	// KubernetesMetadata represents the Application KubernetesMetadata extension.
 	KubernetesMetadata *datamodel.KubeMetadataExtension
 }

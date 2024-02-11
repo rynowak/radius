@@ -711,6 +711,41 @@ func (d *DaprStateStoreResourceUpdateProperties) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
+// MarshalJSON implements the json.Marshaller interface for type EcsCompute.
+func (e EcsCompute) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]any)
+	populate(objectMap, "identity", e.Identity)
+	objectMap["kind"] = "ecs"
+	populate(objectMap, "resourceId", e.ResourceID)
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON implements the json.Unmarshaller interface for type EcsCompute.
+func (e *EcsCompute) UnmarshalJSON(data []byte) error {
+	var rawMsg map[string]json.RawMessage
+	if err := json.Unmarshal(data, &rawMsg); err != nil {
+		return fmt.Errorf("unmarshalling type %T: %v", e, err)
+	}
+	for key, val := range rawMsg {
+		var err error
+		switch key {
+		case "identity":
+				err = unpopulate(val, "Identity", &e.Identity)
+			delete(rawMsg, key)
+		case "kind":
+				err = unpopulate(val, "Kind", &e.Kind)
+			delete(rawMsg, key)
+		case "resourceId":
+				err = unpopulate(val, "ResourceID", &e.ResourceID)
+			delete(rawMsg, key)
+		}
+		if err != nil {
+			return fmt.Errorf("unmarshalling type %T: %v", e, err)
+		}
+	}
+	return nil
+}
+
 // MarshalJSON implements the json.Marshaller interface for type EnvironmentCompute.
 func (e EnvironmentCompute) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]any)

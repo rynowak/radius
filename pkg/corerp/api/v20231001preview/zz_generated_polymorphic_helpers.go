@@ -19,6 +19,8 @@ func unmarshalEnvironmentComputeClassification(rawMsg json.RawMessage) (Environm
 	}
 	var b EnvironmentComputeClassification
 	switch m["kind"] {
+	case "ecs":
+		b = &EcsCompute{}
 	case "kubernetes":
 		b = &KubernetesCompute{}
 	default:
@@ -40,6 +42,8 @@ func unmarshalEnvironmentComputeUpdateClassification(rawMsg json.RawMessage) (En
 	}
 	var b EnvironmentComputeUpdateClassification
 	switch m["kind"] {
+	case "ecs":
+		b = &EcsComputeUpdate{}
 	case "kubernetes":
 		b = &KubernetesComputeUpdate{}
 	default:

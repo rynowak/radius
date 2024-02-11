@@ -22,6 +22,7 @@ import (
 	"github.com/radius-project/radius/pkg/azure/armauth"
 	"github.com/radius-project/radius/pkg/corerp/datamodel"
 	"github.com/radius-project/radius/pkg/corerp/handlers"
+	"github.com/radius-project/radius/pkg/corerp/renderers"
 	"github.com/radius-project/radius/pkg/corerp/renderers/container"
 	azcontainer "github.com/radius-project/radius/pkg/corerp/renderers/container/azure"
 	"github.com/radius-project/radius/pkg/corerp/renderers/daprextension"
@@ -32,6 +33,7 @@ import (
 	"github.com/radius-project/radius/pkg/corerp/renderers/volume"
 	"github.com/radius-project/radius/pkg/resourcemodel"
 	rpv1 "github.com/radius-project/radius/pkg/rp/v1"
+	"github.com/radius-project/radius/pkg/sdk"
 	resources_azure "github.com/radius-project/radius/pkg/ucp/resources/azure"
 	resources_kubernetes "github.com/radius-project/radius/pkg/ucp/resources/kubernetes"
 
@@ -49,7 +51,7 @@ const (
 
 // NewApplicationModel configures RBAC support on connections based on connection kind, configures the providers supported by the appmodel,
 // registers the renderers and handlers for various resources, and checks for duplicate registrations.
-func NewApplicationModel(arm *armauth.ArmConfig, k8sClient client.Client, k8sClientSet kubernetes.Interface, discoveryClient discovery.ServerResourcesInterface, k8sDynamicClientSet dynamic.Interface) (ApplicationModel, error) {
+func NewApplicationModel(connection sdk.Connection, arm *armauth.ArmConfig, k8sClient client.Client, k8sClientSet kubernetes.Interface, discoveryClient discovery.ServerResourcesInterface, k8sDynamicClientSet dynamic.Interface) (ApplicationModel, error) {
 	// Configure RBAC support on connections based connection kind.
 	// Role names can be user input or default roles assigned by Radius.
 	// Leave RoleNames field empty if no default roles are supported for a connection kind.
@@ -79,6 +81,7 @@ func NewApplicationModel(arm *armauth.ArmConfig, k8sClient client.Client, k8sCli
 	// Configure the providers supported by the appmodel
 	supportedProviders := map[string]bool{
 		resourcemodel.ProviderKubernetes: true,
+		resourcemodel.ProviderAWS:        true,
 	}
 	if arm != nil {
 		supportedProviders[resourcemodel.ProviderAzure] = true
@@ -87,11 +90,16 @@ func NewApplicationModel(arm *armauth.ArmConfig, k8sClient client.Client, k8sCli
 	radiusResourceModel := []RadiusResourceModel{
 		{
 			ResourceType: container.ResourceType,
-			Renderer: &kubernetesmetadata.Renderer{
-				Inner: &manualscale.Renderer{
-					Inner: &daprextension.Renderer{
-						Inner: &container.Renderer{
-							RoleAssignmentMap: roleAssignmentMap,
+			Renderer: &container.MetaRenderer{
+				Renderers: map[string]renderers.Renderer{
+					"ecs": &container.ECSRenderer{},
+					"kubernetes": &kubernetesmetadata.Renderer{
+						Inner: &manualscale.Renderer{
+							Inner: &daprextension.Renderer{
+								Inner: &container.Renderer{
+									RoleAssignmentMap: roleAssignmentMap,
+								},
+							},
 						},
 					},
 				},
@@ -112,6 +120,48 @@ func NewApplicationModel(arm *armauth.ArmConfig, k8sClient client.Client, k8sCli
 	}
 
 	outputResourceModel := []OutputResourceModel{
+		{
+			ResourceType: resourcemodel.ResourceType{
+				Type:     AnyResourceType,
+				Provider: resourcemodel.ProviderAWS,
+			},
+			ResourceHandler: &handlers.AWSHandler{Connection: connection},
+		},
+		{
+			ResourceType: resourcemodel.ResourceType{
+				Type:     "AWS.IAM/Role",
+				Provider: resourcemodel.ProviderAWS,
+			},
+			ResourceHandler: &handlers.AWSIAMRoleHandler{Connection: connection},
+		},
+		{
+			ResourceType: resourcemodel.ResourceType{
+				Type:     "AWS.IAM/RolePolicy",
+				Provider: resourcemodel.ProviderAWS,
+			},
+			ResourceHandler: &handlers.AWSIAMRolePolicyHandler{Connection: connection},
+		},
+		{
+			ResourceType: resourcemodel.ResourceType{
+				Type:     "AWS.ECS/Service",
+				Provider: resourcemodel.ProviderAWS,
+			},
+			ResourceHandler: &handlers.AWSECSServiceHandler{Connection: connection},
+		},
+		{
+			ResourceType: resourcemodel.ResourceType{
+				Type:     "AWS.ECS/TaskDefinition",
+				Provider: resourcemodel.ProviderAWS,
+			},
+			ResourceHandler: &handlers.AWSECSTaskDefinitionHandler{Connection: connection},
+		},
+		{
+			ResourceType: resourcemodel.ResourceType{
+				Type:     "AWS.ServiceDiscovery/Service",
+				Provider: resourcemodel.ProviderAWS,
+			},
+			ResourceHandler: &handlers.AWSServiceDiscoveryServiceHandler{Connection: connection},
+		},
 		{
 			ResourceType: resourcemodel.ResourceType{
 				Type:     AnyResourceType,

@@ -30,6 +30,8 @@ const (
 	UnknownComputeKind EnvironmentComputeKind = "unknown"
 	// KubernetesComputeKind represents kubernetes compute resource type.
 	KubernetesComputeKind EnvironmentComputeKind = "kubernetes"
+	// ECSComputeKind represents ECS compute resource type.
+	ECSComputeKind EnvironmentComputeKind = "ecs"
 )
 
 // BasicDaprResourceProperties is the basic resource properties for dapr resources.
@@ -82,6 +84,7 @@ func (in *ResourceStatus) DeepCopy(out *ResourceStatus) {
 type EnvironmentCompute struct {
 	Kind              EnvironmentComputeKind      `json:"kind"`
 	KubernetesCompute KubernetesComputeProperties `json:"kubernetes,omitempty"`
+	ECSCompute        ECSComputeProperties        `json:"ecs,omitempty"`
 
 	// Environment-level identity that can be used by any resource in the environment.
 	// Resources can specify its own identities and they will override the environment-level identity.
@@ -95,6 +98,11 @@ type KubernetesComputeProperties struct {
 
 	// Namespace represents Kubernetes namespace.
 	Namespace string `json:"namespace"`
+}
+
+// ECSComputeProperties represents the ECS configuration of the environment.
+type ECSComputeProperties struct {
+	ResourceID string `json:"resourceId,omitempty"`
 }
 
 // RadiusResourceModel represents the interface of radius resource type.
