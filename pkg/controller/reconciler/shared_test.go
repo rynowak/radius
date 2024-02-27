@@ -17,6 +17,7 @@ limitations under the License.
 package reconciler
 
 import (
+	"encoding/json"
 	"fmt"
 
 	v1 "github.com/radius-project/radius/pkg/armrpc/api/v1"
@@ -46,6 +47,23 @@ func makeRecipe(name types.NamespacedName, resourceType string) *radappiov1alpha
 		},
 		Spec: radappiov1alpha3.RecipeSpec{
 			Type: resourceType,
+		},
+	}
+}
+
+func makeApplicationDeployment(name types.NamespacedName, template map[string]any) *radappiov1alpha3.ApplicationDeployment {
+	b, err := json.Marshal(template)
+	if err != nil {
+		panic(err)
+	}
+
+	return &radappiov1alpha3.ApplicationDeployment{
+		ObjectMeta: ctrl.ObjectMeta{
+			Namespace: name.Namespace,
+			Name:      name.Name,
+		},
+		Spec: radappiov1alpha3.ApplicationDeploymentSpec{
+			Template: string(b),
 		},
 	}
 }

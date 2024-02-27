@@ -242,7 +242,7 @@ func (r *RecipeReconciler) reconcileUpdate(ctx context.Context, recipe *radappio
 		applicationName = recipe.Spec.Application
 	}
 
-	resourceGroupID, environmentID, applicationID, err := resolveDependencies(ctx, r.Radius, "/planes/radius/local", environmentName, applicationName)
+	resourceGroupID, environmentID, applicationID, err := resolveDependencies(ctx, r.Radius, "/planes/radius/local", environmentName, applicationName, nil)
 	if err != nil {
 		r.EventRecorder.Event(recipe, corev1.EventTypeWarning, "DependencyError", err.Error())
 		logger.Error(err, "Unable to resolve dependencies.")

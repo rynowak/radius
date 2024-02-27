@@ -271,7 +271,7 @@ func (r *DeploymentReconciler) reconcileUpdate(ctx context.Context, deployment *
 		applicationName = annotations.Configuration.Application
 	}
 
-	resourceGroupID, environmentID, applicationID, err := resolveDependencies(ctx, r.Radius, "/planes/radius/local", environmentName, applicationName)
+	resourceGroupID, environmentID, applicationID, err := resolveDependencies(ctx, r.Radius, "/planes/radius/local", environmentName, applicationName, nil)
 	if err != nil {
 		r.EventRecorder.Event(deployment, corev1.EventTypeWarning, "DependencyError", err.Error())
 		logger.Error(err, "Unable to resolve dependencies.")

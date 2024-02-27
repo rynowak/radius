@@ -31,7 +31,7 @@ import (
 	"github.com/radius-project/radius/pkg/ucp/ucplog"
 )
 
-func resolveDependencies(ctx context.Context, radius RadiusClient, scope string, environmentName string, applicationName string) (resourceGroupID string, environmentID string, applicationID string, err error) {
+func resolveDependencies(ctx context.Context, radius RadiusClient, scope string, environmentName string, applicationName string, labels map[string]string) (resourceGroupID string, environmentID string, applicationID string, err error) {
 	found, err := findEnvironment(ctx, radius, scope, environmentName)
 	if found == nil {
 		return "", "", "", fmt.Errorf("could not find an environment named %q", environmentName)
@@ -50,7 +50,7 @@ func resolveDependencies(ctx context.Context, radius RadiusClient, scope string,
 	}
 
 	applicationID = resourceGroupID + "/providers/Applications.Core/applications/" + applicationName
-	err = createApplicationIfNotExists(ctx, radius, environmentID, applicationID)
+	err = createApplicationIfNotExists(ctx, radius, environmentID, applicationID, labels)
 	if err != nil {
 		return "", "", "", fmt.Errorf("failed to get or create application: %w", err)
 	}
@@ -110,7 +110,7 @@ func createResourceGroupIfNotExists(ctx context.Context, radius RadiusClient, re
 	return nil
 }
 
-func createApplicationIfNotExists(ctx context.Context, radius RadiusClient, environmentID string, applicationID string) error {
+func createApplicationIfNotExists(ctx context.Context, radius RadiusClient, environmentID string, applicationID string, labels map[string]string) error {
 	id, err := resources.Parse(applicationID)
 	if err != nil {
 		return err
@@ -130,6 +130,11 @@ func createApplicationIfNotExists(ctx context.Context, radius RadiusClient, envi
 		return nil
 	}
 
+	converted := map[string]*string{}
+	if labels != nil {
+		converted = *to.StringMapPtr(labels)
+	}
+
 	app := corerpv20231001preview.ApplicationResource{
 		Location: to.Ptr(v1.LocationGlobal),
 		Name:     to.Ptr(id.Name()),
@@ -139,6 +144,9 @@ func createApplicationIfNotExists(ctx context.Context, radius RadiusClient, envi
 				&corerpv20231001preview.KubernetesNamespaceExtension{
 					Kind:      to.Ptr("kubernetesNamespace"),
 					Namespace: to.Ptr(id.Name()),
+				},
+				&corerpv20231001preview.KubernetesMetadataExtension{
+					Labels: converted,
 				},
 			},
 		},

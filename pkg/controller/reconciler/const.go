@@ -42,6 +42,9 @@ const (
 	// the namespace of the Deployment will be used as the application name.
 	AnnotationRadiusApplication = "radapp.io/application"
 
+	// ApplicationDeploymentFinalizer is the name of the finalizer added to ApplicationDeployments.
+	ApplicationDeploymentFinalizer = "radapp.io/application-deployment-finalizer"
+
 	// DeploymentFinalizer is the name of the finalizer added to Deployments.
 	DeploymentFinalizer = "radapp.io/deployment-finalizer"
 
