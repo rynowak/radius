@@ -1,0 +1,9 @@
+{
+  "id": "/planes/aws/aws",
+  "name": "aws",
+  "type": "System.Planes/aws",
+  "location": "global",
+  "tags": {
+    "env": "dev"
+  }
+}

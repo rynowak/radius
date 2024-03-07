@@ -72,3 +72,26 @@ func unmarshalCredentialStoragePropertiesClassification(rawMsg json.RawMessage) 
 	return b, nil
 }
 
+func unmarshalKubernetesAuthenticationConfigurationClassification(rawMsg json.RawMessage) (KubernetesAuthenticationConfigurationClassification, error) {
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var m map[string]any
+	if err := json.Unmarshal(rawMsg, &m); err != nil {
+		return nil, err
+	}
+	var b KubernetesAuthenticationConfigurationClassification
+	switch m["kind"] {
+	case "InCluster":
+		b = &KubernetesInClusterConfiguration{}
+	case "ServiceAccountToken":
+		b = &KubernetesServiceAccountTokenConfiguration{}
+	default:
+		b = &KubernetesAuthenticationConfiguration{}
+	}
+	if err := json.Unmarshal(rawMsg, b); err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+

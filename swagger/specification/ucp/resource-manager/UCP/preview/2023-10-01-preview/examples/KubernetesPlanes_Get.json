@@ -1,0 +1,22 @@
+{
+  "operationId": "KubernetesPlanes_Get",
+  "title": "Get a Kubernetes plane",
+  "parameters": {
+    "api-version": "2023-10-01-preview",
+    "planeName": "mycluster"
+  },
+  "responses": {
+    "200": {
+      "body": {
+        "id": "/planes/kubernetes/mycluster",
+        "name": "mycluster",
+        "type": "System.Planes/kubernetes",
+        "location": "global",
+        "properties": {
+          "server": "https://mycluster.example.com:9441",
+          "certificateAuthorityData": "<base64-encoded-certificate-authority-data>"
+        }
+      }
+    }
+  }
+}

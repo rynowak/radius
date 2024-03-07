@@ -1,0 +1,37 @@
+{
+  "operationId": "KubernetesPlanes_Update",
+  "title": "Update a Kubernetes plane",
+  "parameters": {
+    "api-version": "2023-10-01-preview",
+    "planeName": "mycluster",
+    "Plane": {
+      "location": "global",
+      "properties": {
+        "server": "https://mycluster.example.com:9441",
+        "certificateAuthorityData": "<base64-encoded-certificate-authority-data>",
+        "user": {
+          "username": "admin",
+          "password": "password"
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "body": {
+        "id": "/planes/kubernetes/mycluster",
+        "name": "mycluster",
+        "type": "System.Planes/kubernetes",
+        "location": "global",
+        "properties": {
+          "server": "https://mycluster.example.com:9441",
+          "certificateAuthorityData": "<base64-encoded-certificate-authority-data>",
+          "user": {
+            "username": "admin",
+            "password": "password"
+          }
+        }
+      }
+    }
+  }
+}

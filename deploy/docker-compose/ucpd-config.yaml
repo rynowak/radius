@@ -27,7 +27,7 @@ planes:
         Applications.Messaging: "http://applications-rp:80"
         Applications.Dapr: "http://applications-rp:80"
         Applications.Datastores: "http://applications-rp:80"
-        Microsoft.Resources: "http://deployment-engine:80"
+        Microsoft.Resources: "http://bicep-de:80"
       kind: "UCPNative"
 
 identity:
@@ -36,7 +36,7 @@ identity:
 ucp:
   kind: direct
   direct:
-    endpoint: "http://localhost:9000/apis/api.ucp.dev/v1alpha3"
+    endpoint: "http://localhost:9000/"
 
 # Metrics configuration
 # port is not the same as metrics configuration in radius-self-hosted.yaml

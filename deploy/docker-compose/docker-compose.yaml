@@ -1,29 +1,85 @@
+# This file is authored using the docker-compose specification.
+# For reference, see the specification, not the v3 or v2 version of
+# docker-compose: https://docs.docker.com/compose/compose-file/
+name: radius
 services:
-  ucp:
-    image: ghcr.io/radius-project/ucpd:latest
-    config: 
+  ucpd:
+    image: ghcr.io/radius-project/ucpd:${RADIUS_VERSION}
+    depends_on:
+      - etcd
+    configs:
       - source: ucpd-config
         target: /etc/ucpd/ucpd-config.yaml
+    ports:
+      - "9000:9000"
     environment:
+      - UCP_CONFIG=/etc/ucpd/ucpd-config.yaml
       - PORT=9000
     networks:
-    - radius
+      - radius
+    deploy:
+      restart_policy:
+        condition: on-failure
 
-  deployment-engine:
-    image: ghcr.io/radius-project/deployment-engine:latest
+  bicep-de:
+    image: ghcr.io/radius-project/deployment-engine:${RADIUS_VERSION}
+    depends_on:
+      - ucpd
     networks:
-    - radius
+      - radius
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   applications-rp:
-    image: ghcr.io/radius-project/applications-rp:latest
+    image: ghcr.io/radius-project/applications-rp:${RADIUS_VERSION}
+    depends_on:
+      - ucpd
+    command: 
+    - '--config-file'
+    - '/etc/applications-rp/applications-rp-config.yaml'
+    configs:
+      - source: applications-rp-config
+        target: /etc/applications-rp/applications-rp-config.yaml
     networks:
-    - radius
+      - radius
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  # Configuring a single-node etcd cluster.
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.11
+    entrypoint: /usr/local/bin/etcd
+    command:
+      - "--name=etcd"
+      - "--initial-advertise-peer-urls=http://etcd:2380"
+      - "--listen-peer-urls=http://0.0.0.0:2380"
+      - "--listen-client-urls=http://0.0.0.0:2379"
+      - "--advertise-client-urls=http://etcd-1:2379"
+      - "--heartbeat-interval=250"
+      - "--election-timeout=1250"
+      - "--initial-cluster=etcd=http://etcd:2380"
+      - "--initial-cluster-state=new"
+      - "--initial-cluster-token=rad-token"
+    ports:
+      - "2379:2379"
+    networks:
+      - radius
+    volumes:
+      - etcd:/etcd-data
+    deploy:
+      restart_policy:
+        condition: on-failure
 
 configs:
   ucpd-config:
-    file: ../../cmd/ucpd/ucpd-config.yaml
+    file: ./ucpd-config.yaml
   applications-rp-config:
     file: ./applications-rp-config.yaml
 
 networks:
   radius: {}
+
+volumes:
+  etcd: {}

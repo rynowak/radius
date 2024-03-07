@@ -1,0 +1,14 @@
+{
+  "id": "/planes/radius/local",
+  "name": "local",
+  "type": "System.Planes/radius",
+  "location": "global",
+  "tags": {
+    "env": "dev"
+  },
+  "properties": {
+    "resourceProviders": {
+      "Applications.Core": "http://applications-rp:9000"
+    }
+  }
+}

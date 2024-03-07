@@ -1,0 +1,11 @@
+{
+  "location": "global",
+  "properties": {
+    "server": "https://kubernetes.svc.local:9443",
+    "certificateAuthorityData": "AAAA===",
+    "auth": {
+      "kind": "ServiceAccountToken",
+      "tokenData": "BBBB==="
+    }
+  }
+}

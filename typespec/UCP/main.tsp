@@ -19,9 +19,17 @@ import "@azure-tools/typespec-azure-resource-manager";
 
 import "./common.tsp";
 import "./planes.tsp";
-import "./resourcegroups.tsp";
+
 import "./aws-credentials.tsp";
+import "./aws-plane.tsp";
+
 import "./azure-credentials.tsp";
+import "./azure-plane.tsp";
+
+import "./kubernetes-plane.tsp";
+
+import "./resourcegroups.tsp";
+import "./radius-plane.tsp";
 
 using TypeSpec.Versioning;
 using Azure.ResourceManager;

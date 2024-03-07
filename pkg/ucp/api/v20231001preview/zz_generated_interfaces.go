@@ -34,3 +34,12 @@ type CredentialStoragePropertiesClassification interface {
 	GetCredentialStorageProperties() *CredentialStorageProperties
 }
 
+// KubernetesAuthenticationConfigurationClassification provides polymorphic access to related types.
+// Call the interface's GetKubernetesAuthenticationConfiguration() method to access the common type.
+// Use a type switch to determine the concrete type.  The possible types are:
+// - *KubernetesAuthenticationConfiguration, *KubernetesInClusterConfiguration, *KubernetesServiceAccountTokenConfiguration
+type KubernetesAuthenticationConfigurationClassification interface {
+	// GetKubernetesAuthenticationConfiguration returns the KubernetesAuthenticationConfiguration content of the underlying type.
+	GetKubernetesAuthenticationConfiguration() *KubernetesAuthenticationConfiguration
+}
+

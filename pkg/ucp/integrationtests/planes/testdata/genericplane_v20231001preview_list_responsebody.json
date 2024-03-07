@@ -1,0 +1,14 @@
+{
+  "value": [
+    {
+      "id": "/planes/radius/local",
+      "name": "local",
+      "type": "System.Planes/radius",
+      "location": "global",
+      "tags": {},
+      "properties": {
+        "provisioningState": "Succeeded"
+      }
+    }
+  ]
+}

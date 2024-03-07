@@ -1,0 +1,19 @@
+{
+  "value": [
+    {
+      "id": "/planes/kubernetes/local",
+      "name": "local",
+      "type": "System.Planes/kubernetes",
+      "location": "global",
+      "tags": {},
+      "properties": {
+        "provisioningState": "Succeeded",
+        "server": "https://kubernetes.svc.local:9443",
+        "certificateAuthorityData": "AAAA===",
+        "auth": {
+          "kind": "InCluster"
+        }
+      }
+    }
+  ]
+}

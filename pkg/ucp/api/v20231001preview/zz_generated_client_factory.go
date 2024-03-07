@@ -39,13 +39,33 @@ func (c *ClientFactory) NewAwsCredentialsClient() *AwsCredentialsClient {
 	return subClient
 }
 
+func (c *ClientFactory) NewAwsPlanesClient() *AwsPlanesClient {
+	subClient, _ := NewAwsPlanesClient(c.credential, c.options)
+	return subClient
+}
+
 func (c *ClientFactory) NewAzureCredentialsClient() *AzureCredentialsClient {
 	subClient, _ := NewAzureCredentialsClient(c.credential, c.options)
 	return subClient
 }
 
+func (c *ClientFactory) NewAzurePlanesClient() *AzurePlanesClient {
+	subClient, _ := NewAzurePlanesClient(c.credential, c.options)
+	return subClient
+}
+
+func (c *ClientFactory) NewKubernetesPlanesClient() *KubernetesPlanesClient {
+	subClient, _ := NewKubernetesPlanesClient(c.credential, c.options)
+	return subClient
+}
+
 func (c *ClientFactory) NewPlanesClient() *PlanesClient {
 	subClient, _ := NewPlanesClient(c.credential, c.options)
+	return subClient
+}
+
+func (c *ClientFactory) NewRadiusPlanesClient() *RadiusPlanesClient {
+	subClient, _ := NewRadiusPlanesClient(c.credential, c.options)
 	return subClient
 }
 

@@ -31,18 +31,18 @@ import (
 
 var _ armrpc_controller.Controller = (*ListPlanes)(nil)
 
-// ListPlanes is the controller implementation to get the list of UCP planes.
+// ListPlanes is the controller implementation to get the list of all planes regardless of type.
 type ListPlanes struct {
-	armrpc_controller.Operation[*datamodel.Plane, datamodel.Plane]
+	armrpc_controller.Operation[*datamodel.GenericPlane, datamodel.GenericPlane]
 }
 
-// NewListPlanes creates a new controller for listing for the Plane resource type.
+// NewListPlanes creates a new controller for listing all planes regardless of type.
 func NewListPlanes(opts armrpc_controller.Options) (armrpc_controller.Controller, error) {
 	return &ListPlanes{
 		Operation: armrpc_controller.NewOperation(opts,
-			armrpc_controller.ResourceOptions[datamodel.Plane]{
-				RequestConverter:  converter.PlaneDataModelFromVersioned,
-				ResponseConverter: converter.PlaneDataModelToVersioned,
+			armrpc_controller.ResourceOptions[datamodel.GenericPlane]{
+				RequestConverter:  converter.GenericPlaneDataModelFromVersioned,
+				ResponseConverter: converter.GenericPlaneDataModelToVersioned,
 			},
 		),
 	}, nil
@@ -63,7 +63,7 @@ func (e *ListPlanes) Run(ctx context.Context, w http.ResponseWriter, req *http.R
 	if err != nil {
 		return nil, err
 	}
-	listOfPlanes, err := e.createResponse(ctx, req, result)
+	listOfPlanes, err := e.createResponse(ctx, result)
 	if err != nil {
 		return nil, err
 	}
@@ -71,18 +71,18 @@ func (e *ListPlanes) Run(ctx context.Context, w http.ResponseWriter, req *http.R
 	return ok, nil
 }
 
-func (p *ListPlanes) createResponse(ctx context.Context, req *http.Request, result *store.ObjectQueryResult) (*v1.PaginatedList, error) {
+func (p *ListPlanes) createResponse(ctx context.Context, result *store.ObjectQueryResult) (*v1.PaginatedList, error) {
 	serviceCtx := v1.ARMRequestContextFromContext(ctx)
 	items := v1.PaginatedList{}
 
 	for _, item := range result.Items {
-		var plane datamodel.Plane
+		var plane datamodel.GenericPlane
 		err := item.As(&plane)
 		if err != nil {
 			return nil, err
 		}
 
-		versioned, err := converter.PlaneDataModelToVersioned(&plane, serviceCtx.APIVersion)
+		versioned, err := p.ResponseConverter()(&plane, serviceCtx.APIVersion)
 		if err != nil {
 			return nil, err
 		}
