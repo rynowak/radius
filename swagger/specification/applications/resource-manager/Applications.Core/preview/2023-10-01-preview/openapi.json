@@ -4180,6 +4180,46 @@
         ]
       }
     },
+    "PromiseConfigProperties": {
+      "type": "object",
+      "description": "Configuration for Promises. Controls how Promises are executed as part of Recipe deployment.",
+      "properties": {}
+    },
+    "PromiseRecipeProperties": {
+      "type": "object",
+      "description": "The configuration for a Recipe that uses a Kratix Promise.",
+      "properties": {
+        "templateVersion": {
+          "type": "string",
+          "description": "The Promise apiVersion."
+        }
+      },
+      "required": [
+        "templateVersion"
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/RecipeProperties"
+        }
+      ],
+      "x-ms-discriminator-value": "promise"
+    },
+    "PromiseRecipePropertiesUpdate": {
+      "type": "object",
+      "description": "The configuration for a Recipe that uses a Kratix Promise.",
+      "properties": {
+        "templateVersion": {
+          "type": "string",
+          "description": "The Promise apiVersion."
+        }
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/RecipePropertiesUpdate"
+        }
+      ],
+      "x-ms-discriminator-value": "promise"
+    },
     "ProviderConfigProperties": {
       "type": "object",
       "description": "This configuration holds the necessary information to authenticate and interact with a provider for the recipe execution.",
@@ -4339,6 +4379,10 @@
         "terraform": {
           "$ref": "#/definitions/TerraformConfigProperties",
           "description": "Configuration for Terraform Recipes. Controls how Terraform plans and applies templates as part of Recipe deployment."
+        },
+        "promises": {
+          "$ref": "#/definitions/PromiseConfigProperties",
+          "description": "Configuration for Promises. Controls how Promises are executed as part of Recipe deployment."
         },
         "env": {
           "$ref": "#/definitions/EnvironmentVariables",

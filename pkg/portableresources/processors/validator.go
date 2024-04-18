@@ -293,11 +293,15 @@ func convertToBool(value any) (bool, bool) {
 
 func convertToInt32(value any) (int32, bool) {
 	switch v := value.(type) {
+	case int64:
+		return int32(v), true
 	case int32:
 		return v, true
 	case int:
 		return int32(v), true
 	case float64:
+		return int32(v), true
+	case float32:
 		return int32(v), true
 	default:
 		return int32(0), false

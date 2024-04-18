@@ -21,8 +21,16 @@ type RecipeConfigProperties struct {
 	// Configuration for Terraform Recipes. Controls how Terraform plans and applies templates as part of Recipe deployment.
 	Terraform TerraformConfigProperties `json:"terraform,omitempty"`
 
+	// Promises is configuration for the Kratix Promise Recipe driver.
+	Promises PromiseConfigProperties `json:"promises,omitempty"`
+
 	// Env specifies the environment variables to be set during the Terraform Recipe execution.
 	Env EnvironmentVariables `json:"env,omitempty"`
+}
+
+// PromiseConfigProperties is the configuration for the Kratix Promise Recipe driver.
+type PromiseConfigProperties struct {
+	// Nothing here for now
 }
 
 // TerraformConfigProperties - Configuration for Terraform Recipes. Controls how Terraform plans and applies templates as

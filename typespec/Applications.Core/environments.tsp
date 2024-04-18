@@ -79,6 +79,9 @@ model RecipeConfigProperties {
   @doc("Configuration for Terraform Recipes. Controls how Terraform plans and applies templates as part of Recipe deployment.")
   terraform?: TerraformConfigProperties;
 
+  @doc("Configuration for Promises. Controls how Promises are executed as part of Recipe deployment.")
+  promises?: PromiseConfigProperties;
+
   @doc("Environment variables injected during Terraform Recipe execution for the recipes in the environment.")
   env?: EnvironmentVariables;
 }
@@ -90,6 +93,11 @@ model TerraformConfigProperties {
 
   @doc("Configuration for Terraform Recipe Providers. Controls how Terraform interacts with cloud providers, SaaS providers, and other APIs. For more information, please see: https://developer.hashicorp.com/terraform/language/providers/configuration.")
   providers?: Record<Array<ProviderConfigProperties>>;
+}
+
+@doc("Configuration for Promises. Controls how Promises are executed as part of Recipe deployment.")
+model PromiseConfigProperties {
+  // Blank for now
 }
 
 @doc("Authentication information used to access private Terraform module sources. Supported module sources: Git.")
@@ -166,6 +174,15 @@ model TerraformRecipeProperties extends RecipeProperties {
 
   @doc("Version of the template to deploy. For Terraform recipes using a module registry this is required, but must be omitted for other module sources.")
   templateVersion?: string;
+}
+
+@doc("The configuration for a Recipe that uses a Kratix Promise.")
+model PromiseRecipeProperties extends RecipeProperties {
+  @doc("The Promise template kind.")
+  templateKind: "promise";
+
+  @doc("The Promise apiVersion.")
+  templateVersion: string;
 }
 
 @doc("Represents the request body of the getmetadata action.")

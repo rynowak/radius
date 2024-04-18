@@ -383,6 +383,13 @@ func toEnvironmentRecipeProperties(e RecipePropertiesClassification) (datamodel.
 			PlainHTTP:    to.Bool(c.PlainHTTP),
 			Parameters:   c.Parameters,
 		}, nil
+
+	case *PromiseRecipeProperties:
+		return datamodel.EnvironmentRecipeProperties{
+			TemplateKind:    types.TemplateKindPromise,
+			TemplatePath:    to.String(c.TemplatePath),
+			TemplateVersion: to.String(c.TemplateVersion),
+		}, nil
 	}
 	return datamodel.EnvironmentRecipeProperties{}, nil
 }
@@ -402,6 +409,14 @@ func fromRecipePropertiesClassificationDatamodel(e datamodel.EnvironmentRecipePr
 			TemplatePath: to.Ptr(e.TemplatePath),
 			Parameters:   e.Parameters,
 			PlainHTTP:    to.Ptr(e.PlainHTTP),
+		}
+
+	case types.TemplateKindPromise:
+		return &PromiseRecipeProperties{
+			TemplateKind:    to.Ptr(e.TemplateKind),
+			TemplatePath:    to.Ptr(e.TemplatePath),
+			TemplateVersion: to.Ptr(e.TemplateVersion),
+			Parameters:      e.Parameters,
 		}
 	}
 

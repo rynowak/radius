@@ -170,6 +170,8 @@ func getRecipeDefinition(environment *v20231001preview.EnvironmentResource, reci
 		if c.PlainHTTP != nil {
 			definition.PlainHTTP = *c.PlainHTTP
 		}
+	case *v20231001preview.PromiseRecipeProperties:
+		definition.TemplateVersion = *c.TemplateVersion
 	}
 
 	return definition, nil

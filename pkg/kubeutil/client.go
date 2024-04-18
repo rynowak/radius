@@ -33,7 +33,7 @@ import (
 // Clients is a collection of Kubernetes clients.
 type Clients struct {
 	// RuntimeClient is the Kubernetes controller runtime client.
-	RuntimeClient runtimeclient.Client
+	RuntimeClient runtimeclient.WithWatch
 
 	// ClientSet is the Kubernetes client-go strongly-typed client.
 	ClientSet *kubernetes.Clientset
@@ -79,7 +79,7 @@ func NewClients(config *rest.Config) (*Clients, error) {
 
 // NewRuntimeClient creates a new runtime client using the given config and adds the
 // required resource schemes to the client.
-func NewRuntimeClient(config *rest.Config) (runtimeclient.Client, error) {
+func NewRuntimeClient(config *rest.Config) (runtimeclient.WithWatch, error) {
 	scheme := runtime.NewScheme()
 
 	// TODO: add required resource scheme.
@@ -88,5 +88,5 @@ func NewRuntimeClient(config *rest.Config) (runtimeclient.Client, error) {
 	utilruntime.Must(apiextv1.AddToScheme(scheme))
 	utilruntime.Must(contourv1.AddToScheme(scheme))
 
-	return runtimeclient.New(config, runtimeclient.Options{Scheme: scheme})
+	return runtimeclient.NewWithWatch(config, runtimeclient.Options{Scheme: scheme})
 }

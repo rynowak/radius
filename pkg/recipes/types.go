@@ -88,13 +88,14 @@ type ResourceMetadata struct {
 const (
 	TemplateKindBicep     = "bicep"
 	TemplateKindTerraform = "terraform"
+	TemplateKindPromise   = "promise"
 
 	// Recipe outputs are expected to be wrapped under an object named "result"
 	ResultPropertyName = "result"
 )
 
 var (
-	SupportedTemplateKind = []string{TemplateKindBicep, TemplateKindTerraform}
+	SupportedTemplateKind = []string{TemplateKindBicep, TemplateKindTerraform, TemplateKindPromise}
 )
 
 // RecipeOutput represents recipe deployment output.

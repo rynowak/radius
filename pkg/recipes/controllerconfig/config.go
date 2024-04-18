@@ -104,6 +104,9 @@ func New(options hostoptions.HostOptions) (*RecipeControllerConfig, error) {
 				driver.TerraformOptions{
 					Path: options.Config.Terraform.Path,
 				}, cfg.K8sClients.ClientSet),
+			recipes.TemplateKindPromise: &driver.PromiseDriver{
+				RuntimeClient: cfg.K8sClients.RuntimeClient,
+			},
 		},
 	})
 

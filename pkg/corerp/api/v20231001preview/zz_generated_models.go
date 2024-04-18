@@ -1245,6 +1245,54 @@ func (p *PersistentVolume) GetVolume() *Volume {
 	}
 }
 
+// PromiseRecipeProperties - The configuration for a Recipe that uses a Kratix Promise.
+type PromiseRecipeProperties struct {
+	// REQUIRED; Discriminator property for RecipeProperties.
+	TemplateKind *string
+
+	// REQUIRED; Path to the template provided by the recipe. Currently only link to Azure Container Registry is supported.
+	TemplatePath *string
+
+	// REQUIRED; The Promise apiVersion.
+	TemplateVersion *string
+
+	// Key/value parameters to pass to the recipe template at deployment.
+	Parameters map[string]any
+}
+
+// GetRecipeProperties implements the RecipePropertiesClassification interface for type PromiseRecipeProperties.
+func (p *PromiseRecipeProperties) GetRecipeProperties() *RecipeProperties {
+	return &RecipeProperties{
+		Parameters: p.Parameters,
+		TemplateKind: p.TemplateKind,
+		TemplatePath: p.TemplatePath,
+	}
+}
+
+// PromiseRecipePropertiesUpdate - The configuration for a Recipe that uses a Kratix Promise.
+type PromiseRecipePropertiesUpdate struct {
+	// REQUIRED; Discriminator property for RecipeProperties.
+	TemplateKind *string
+
+	// Key/value parameters to pass to the recipe template at deployment.
+	Parameters map[string]any
+
+	// Path to the template provided by the recipe. Currently only link to Azure Container Registry is supported.
+	TemplatePath *string
+
+	// The Promise apiVersion.
+	TemplateVersion *string
+}
+
+// GetRecipePropertiesUpdate implements the RecipePropertiesUpdateClassification interface for type PromiseRecipePropertiesUpdate.
+func (p *PromiseRecipePropertiesUpdate) GetRecipePropertiesUpdate() *RecipePropertiesUpdate {
+	return &RecipePropertiesUpdate{
+		Parameters: p.Parameters,
+		TemplateKind: p.TemplateKind,
+		TemplatePath: p.TemplatePath,
+	}
+}
+
 // Providers - The Cloud providers configuration.
 type Providers struct {
 	// The AWS cloud provider configuration.
@@ -1300,6 +1348,9 @@ type Recipe struct {
 type RecipeConfigProperties struct {
 	// Environment variables injected during Terraform Recipe execution for the recipes in the environment.
 	Env map[string]*string
+
+	// Configuration for Promises. Controls how Promises are executed as part of Recipe deployment.
+	Promises map[string]any
 
 	// Configuration for Terraform Recipes. Controls how Terraform plans and applies templates as part of Recipe deployment.
 	Terraform *TerraformConfigProperties
