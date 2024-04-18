@@ -4,6 +4,10 @@ kind: Deployment
 metadata:
   name: controller
   namespace: "{{ .Release.Namespace }}"
+  annotations:
+    radapp.io/enabled: 'true'
+    radapp.io/application: 'my-app-name'
+    radapp.io/environment: "{{ .Values.controller.environment }}"
   labels:
     control-plane: controller
     app.kubernetes.io/name: controller
