@@ -44,8 +44,10 @@ import (
 	"github.com/radius-project/radius/pkg/armrpc/asyncoperation/worker"
 	"github.com/radius-project/radius/pkg/armrpc/rpctest"
 	"github.com/radius-project/radius/pkg/armrpc/servicecontext"
+	aztoken "github.com/radius-project/radius/pkg/azure/tokencredentials"
 	"github.com/radius-project/radius/pkg/middleware"
 	"github.com/radius-project/radius/pkg/sdk"
+	"github.com/radius-project/radius/pkg/ucp/api/v20231001preview"
 	"github.com/radius-project/radius/pkg/ucp/backend"
 	"github.com/radius-project/radius/pkg/ucp/data"
 	"github.com/radius-project/radius/pkg/ucp/dataprovider"
@@ -94,6 +96,8 @@ type TestServer struct {
 	t           *testing.T
 	stoppedChan <-chan struct{}
 	shutdown    sync.Once
+
+	clientFactoryUCP *v20231001preview.ClientFactory
 }
 
 // TestServerClients provides access to the clients created by the TestServer.
@@ -121,6 +125,24 @@ type TestServerMocks struct {
 // like MakeRequest instead of testing the client directly.
 func (ts *TestServer) Client() *http.Client {
 	return ts.Server.Client()
+}
+
+// T provides access to the testing.T instance associated with this test.
+func (ts *TestServer) T() *testing.T {
+	return ts.t
+}
+
+// UCP provides access to the generated clients for the UCP API.
+func (ts *TestServer) UCP() *v20231001preview.ClientFactory {
+	if ts.clientFactoryUCP == nil {
+		connection, err := sdk.NewDirectConnection(ts.BaseURL)
+		require.NoError(ts.t, err)
+
+		ts.clientFactoryUCP, err = v20231001preview.NewClientFactory(&aztoken.AnonymousCredential{}, sdk.NewClientOptions(connection))
+		require.NoError(ts.t, err)
+	}
+
+	return ts.clientFactoryUCP
 }
 
 // Close shuts down the server and will block until shutdown completes.
@@ -229,7 +251,7 @@ func StartWithETCD(t *testing.T, configureModules func(options modules.Options) 
 	etcd := data.NewEmbeddedETCDService(data.EmbeddedETCDServiceOptions{
 		ClientConfigSink:  config,
 		AssignRandomPorts: true,
-		Quiet:             false,
+		Quiet:             true,
 	})
 
 	ctx, cancel := testcontext.NewWithCancel(t)
@@ -299,7 +321,7 @@ func StartWithETCD(t *testing.T, configureModules func(options modules.Options) 
 	statusManager := statusmanager.New(dataProvider, queueClient, v1.LocationGlobal)
 
 	registry := worker.NewControllerRegistry(dataProvider)
-	err = backend.RegisterControllers(ctx, registry, connection, backend_ctrl.Options{DataProvider: dataProvider})
+	err = backend.RegisterControllers(ctx, registry, connection, http.DefaultTransport, backend_ctrl.Options{DataProvider: dataProvider})
 	require.NoError(t, err)
 
 	w := worker.New(worker.Options{}, statusManager, queueClient, registry)

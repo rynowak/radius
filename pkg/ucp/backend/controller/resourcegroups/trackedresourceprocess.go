@@ -30,7 +30,6 @@ import (
 	"github.com/radius-project/radius/pkg/ucp/store"
 	"github.com/radius-project/radius/pkg/ucp/trackedresource"
 	"github.com/radius-project/radius/pkg/ucp/ucplog"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 var _ ctrl.Controller = (*TrackedResourceProcessController)(nil)
@@ -48,9 +47,11 @@ type TrackedResourceProcessController struct {
 }
 
 // NewTrackedResourceProcessController creates a new TrackedResourceProcessController controller which is used to process resources asynchronously.
-func NewTrackedResourceProcessController(opts ctrl.Options) (ctrl.Controller, error) {
-	transport := otelhttp.NewTransport(http.DefaultTransport)
-	return &TrackedResourceProcessController{ctrl.NewBaseAsyncController(opts), trackedresource.NewUpdater(opts.StorageClient, &http.Client{Transport: transport})}, nil
+func NewTrackedResourceProcessController(opts ctrl.Options, transport http.RoundTripper) (ctrl.Controller, error) {
+	return &TrackedResourceProcessController{
+		BaseController: ctrl.NewBaseAsyncController(opts),
+		updater:        trackedresource.NewUpdater(opts.StorageClient, &http.Client{Transport: transport}),
+	}, nil
 }
 
 // Run retrieves a resource from storage, parses the resource ID, and updates our tracked resource entry in the background.
@@ -67,7 +68,7 @@ func (c *TrackedResourceProcessController) Run(ctx context.Context, request *ctr
 		return ctrl.Result{}, err
 	}
 
-	downstreamURL, err := resourcegroups.ValidateDownstream(ctx, c.StorageClient(), originalID)
+	downstreamURL, err := resourcegroups.ValidateDownstream(ctx, c.StorageClient(), originalID, v1.LocationGlobal, resource.Properties.APIVersion)
 	if errors.Is(err, &resourcegroups.NotFoundError{}) {
 		return ctrl.NewFailedResult(v1.ErrorDetails{Code: v1.CodeNotFound, Message: err.Error(), Target: request.ResourceID}), nil
 	} else if errors.Is(err, &resourcegroups.InvalidError{}) {
@@ -78,6 +79,7 @@ func (c *TrackedResourceProcessController) Run(ctx context.Context, request *ctr
 
 	logger := ucplog.FromContextOrDiscard(ctx)
 	logger.Info("Processing tracked resource", "resourceID", originalID)
+
 	err = c.updater.Update(ctx, downstreamURL.String(), originalID, resource.Properties.APIVersion)
 	if errors.Is(err, &trackedresource.InProgressErr{}) {
 		// The resource is still being processed, so we can sleep for a while.

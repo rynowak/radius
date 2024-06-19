@@ -77,4 +77,13 @@ type Options struct {
 
 	// UCPConnection is the connection used to communicate with UCP APIs.
 	UCPConnection sdk.Connection
+
+	// DynamicRP configures options for communicating with the DynamicRP.
+	DynamicRP DynamicRPOptions
+}
+
+// DynamicRPOptions configures options for communicating with the DynamicRP.
+type DynamicRPOptions struct {
+	// URL is the URL of the DynamicRP.
+	URL string
 }

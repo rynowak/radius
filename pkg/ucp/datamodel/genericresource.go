@@ -24,6 +24,7 @@ import (
 const (
 	// OperationProcess is the operation type for processing a tracked resource.
 	OperationProcess = "PROCESS"
+
 	// GenericResourceType is the resource type for a generic resource.
 	GenericResourceType = "System.Resources/resources"
 )

@@ -56,7 +56,7 @@ func Test_RadiusPlane_Proxy_ResourceGroupDoesNotExist(t *testing.T) {
 	}
 	createRadiusPlane(ucp, rps)
 
-	response := ucp.MakeRequest(http.MethodGet, testResourceID, nil)
+	response := ucp.MakeRequest(http.MethodGet, testResourceID+"?api-version="+testrp.Version, nil)
 	response.EqualsErrorCode(http.StatusNotFound, "NotFound")
 	require.Equal(t, "the resource with id '/planes/radius/test/resourceGroups/test-rg/providers/System.Test/testResources/test-resource' was not found", response.Error.Error.Message)
 }

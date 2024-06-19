@@ -39,10 +39,14 @@ func NewService(options *dynamicrp.Options) *Service {
 			ProviderName: "dynamic-rp",
 			Options: hostoptions.HostOptions{
 				Config: &hostoptions.ProviderConfig{
+					Bicep:           options.Config.Bicep,
 					Env:             options.Config.Environment,
-					StorageProvider: options.Config.Storage,
+					Logging:         options.Config.Logging,
 					SecretProvider:  options.Config.Secrets,
 					QueueProvider:   options.Config.Queue,
+					StorageProvider: options.Config.Storage,
+					Terraform:       options.Config.Terraform,
+					WorkerServer:    &options.Config.Worker,
 				},
 			},
 		},

@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	v1 "github.com/radius-project/radius/pkg/armrpc/api/v1"
 	ctrl "github.com/radius-project/radius/pkg/armrpc/asyncoperation/controller"
@@ -30,6 +31,7 @@ import (
 	"github.com/radius-project/radius/pkg/ucp/backend/controller/resourcegroups"
 	"github.com/radius-project/radius/pkg/ucp/backend/controller/resourceproviders"
 	"github.com/radius-project/radius/pkg/ucp/datamodel"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 const (
@@ -44,7 +46,7 @@ type Service struct {
 // NewService creates new service instance to run AsyncRequestProcessWorker.
 func NewService(options hostoptions.HostOptions) *Service {
 	return &Service{
-		worker.Service{
+		Service: worker.Service{
 			ProviderName: UCPProviderName,
 			Options:      options,
 		},
@@ -77,7 +79,8 @@ func (w *Service) Run(ctx context.Context) error {
 		DataProvider: w.StorageProvider,
 	}
 
-	err := RegisterControllers(ctx, w.Controllers, w.Options.UCPConnection, opts)
+	transport := otelhttp.NewTransport(http.DefaultTransport)
+	err := RegisterControllers(ctx, w.Controllers, w.Options.UCPConnection, transport, opts)
 	if err != nil {
 		return err
 	}
@@ -86,9 +89,11 @@ func (w *Service) Run(ctx context.Context) error {
 }
 
 // RegisterControllers registers the controllers for the UCP backend.
-func RegisterControllers(ctx context.Context, registry *worker.ControllerRegistry, connection sdk.Connection, opts ctrl.Options) error {
+func RegisterControllers(ctx context.Context, registry *worker.ControllerRegistry, connection sdk.Connection, transport http.RoundTripper, opts ctrl.Options) error {
 	// Tracked resources
-	err := errors.Join(nil, registry.Register(ctx, v20231001preview.ResourceType, v1.OperationMethod(datamodel.OperationProcess), resourcegroups.NewTrackedResourceProcessController, opts))
+	err := errors.Join(nil, registry.Register(ctx, v20231001preview.ResourceType, v1.OperationMethod(datamodel.OperationProcess), func(opts ctrl.Options) (ctrl.Controller, error) {
+		return resourcegroups.NewTrackedResourceProcessController(opts, transport)
+	}, opts))
 
 	// Resource providers and related types
 	err = errors.Join(err, registry.Register(ctx, datamodel.ResourceProviderResourceType, v1.OperationPut, func(opts ctrl.Options) (ctrl.Controller, error) {
