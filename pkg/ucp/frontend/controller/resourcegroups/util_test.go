@@ -120,6 +120,36 @@ func Test_ValidateDownstream(t *testing.T) {
 		require.Equal(t, expectedURL, downstreamURL)
 	})
 
+	t.Run("success (non operationstatus)", func(t *testing.T) {
+		mock := setup(t)
+		mock.EXPECT().Get(gomock.Any(), idWithoutResourceGroup.PlaneScope()).Return(&store.Object{Data: plane}, nil).Times(1)
+		mock.EXPECT().Get(gomock.Any(), locationResource.ID).Return(&store.Object{Data: locationResource}, nil).Times(1)
+
+		operationStatusID := resources.MustParse("/planes/radius/local/providers/System.TestRP/locations/east/operationStatuses/abcd")
+
+		expectedURL, err := url.Parse(downstream)
+		require.NoError(t, err)
+
+		downstreamURL, err := ValidateDownstream(testcontext.New(t), mock, operationStatusID, location, apiVersion)
+		require.NoError(t, err)
+		require.Equal(t, expectedURL, downstreamURL)
+	})
+
+	t.Run("success (non operationresults)", func(t *testing.T) {
+		mock := setup(t)
+		mock.EXPECT().Get(gomock.Any(), idWithoutResourceGroup.PlaneScope()).Return(&store.Object{Data: plane}, nil).Times(1)
+		mock.EXPECT().Get(gomock.Any(), locationResource.ID).Return(&store.Object{Data: locationResource}, nil).Times(1)
+
+		operationResultID := resources.MustParse("/planes/radius/local/providers/System.TestRP/locations/east/operationResults/abcd")
+
+		expectedURL, err := url.Parse(downstream)
+		require.NoError(t, err)
+
+		downstreamURL, err := ValidateDownstream(testcontext.New(t), mock, operationResultID, location, apiVersion)
+		require.NoError(t, err)
+		require.Equal(t, expectedURL, downstreamURL)
+	})
+
 	t.Run("plane not found", func(t *testing.T) {
 		mock := setup(t)
 		mock.EXPECT().Get(gomock.Any(), id.PlaneScope()).Return(nil, &store.ErrNotFound{}).Times(1)

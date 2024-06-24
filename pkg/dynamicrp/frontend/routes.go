@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	v1 "github.com/radius-project/radius/pkg/armrpc/api/v1"
@@ -32,13 +33,6 @@ import (
 	"github.com/radius-project/radius/pkg/dynamicrp/datamodel"
 	"github.com/radius-project/radius/pkg/ucp/resources"
 	"github.com/radius-project/radius/pkg/validator"
-)
-
-const (
-	operationBaseRoute                 = "/planes/radius/{planeName}/providers/{providerNamespace}/locations/{locationName}"
-	planeScopedResourceCollectionRoute = "/planes/radius/{planeName}/providers/{providerNamespace}/{resourceType}"
-	resourceCollectionRoute            = "/planes/radius/{planeName}/{rg:resource[gG]roups}/{resourceGroupName}/providers/{providerNamespace}/{resourceType}"
-	resourceRoute                      = resourceCollectionRoute + "/{resourceName}"
 )
 
 func (s *Service) registerRoutes(r *chi.Mux) error {
@@ -58,34 +52,48 @@ func (s *Service) registerRoutes(r *chi.Mux) error {
 	r.MethodNotAllowed(validator.APIMethodNotAllowedHandler())
 
 	r.Route(s.options.Config.Server.PathBase, func(r chi.Router) {
-		register(r, "GET "+operationBaseRoute+"/operationResults/{operationID}", v1.OperationGet, ctrlOpts, func(opts controller.Options, ctrlOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
-			return defaultoperation.NewGetOperationResult(opts)
+		r.Route("/planes/radius/{planeName}", func(r chi.Router) {
+			r.Route("/providers/{providerNamespace}", func(r chi.Router) {
+				register(r, "GET /{resourceType}", v1.OperationPlaneScopeList, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
+					resourceOpts.ListRecursiveQuery = true
+					return defaultoperation.NewListResources[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
+				})
+
+				r.Route("/locations/{locationName}", func(r chi.Router) {
+					r.Get("/{or:operation[Rr]esults}/{operationID}", dynamicOperationHandler(v1.OperationGet, ctrlOpts, func(opts controller.Options, ctrlOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
+						return defaultoperation.NewGetOperationResult(opts)
+					}))
+					r.Get("/{os:operation[Ss]tatuses}/{operationID}", dynamicOperationHandler(v1.OperationGet, ctrlOpts, func(opts controller.Options, ctrlOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
+						return defaultoperation.NewGetOperationStatus(opts)
+					}))
+				})
+			})
+
+			r.Route("/{rg:resource[gG]roups}/{resourceGroupName}/providers/{providerNamespace}/{resourceType}", func(r chi.Router) {
+				register(r, "GET /", v1.OperationList, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
+					return defaultoperation.NewListResources[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
+				})
+
+				r.Route("/{resourceName}", func(r chi.Router) {
+					register(r, "GET /", v1.OperationGet, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
+						return defaultoperation.NewGetResource[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
+					})
+
+					register(r, "PUT /", v1.OperationPut, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
+						resourceOpts.AsyncOperationTimeout = 24 * time.Hour
+						resourceOpts.AsyncOperationRetryAfter = 5 * time.Second
+						return defaultoperation.NewDefaultAsyncPut[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
+					})
+
+					register(r, "DELETE /", v1.OperationDelete, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
+						resourceOpts.AsyncOperationTimeout = 24 * time.Hour
+						resourceOpts.AsyncOperationRetryAfter = 5 * time.Second
+						return defaultoperation.NewDefaultAsyncDelete[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
+					})
+				})
+			})
 		})
 
-		register(r, "GET "+operationBaseRoute+"/operationStatuses/{operationID}", v1.OperationGet, ctrlOpts, func(opts controller.Options, ctrlOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
-			return defaultoperation.NewGetOperationStatus(opts)
-		})
-
-		register(r, "GET "+planeScopedResourceCollectionRoute, v1.OperationPlaneScopeList, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
-			resourceOpts.ListRecursiveQuery = true
-			return defaultoperation.NewListResources[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
-		})
-
-		register(r, "GET "+resourceCollectionRoute, v1.OperationList, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
-			return defaultoperation.NewListResources[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
-		})
-
-		register(r, "GET "+resourceRoute, v1.OperationGet, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
-			return defaultoperation.NewGetResource[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
-		})
-
-		register(r, "PUT "+resourceRoute, v1.OperationPut, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
-			return defaultoperation.NewDefaultSyncPut[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
-		})
-
-		register(r, "DELETE "+resourceRoute, v1.OperationDelete, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {
-			return defaultoperation.NewDefaultSyncDelete[*datamodel.DynamicResource, datamodel.DynamicResource](ctrlOpts, resourceOpts)
-		})
 	})
 
 	return nil
@@ -94,10 +102,10 @@ func (s *Service) registerRoutes(r *chi.Mux) error {
 type controllerFactory = func(opts controller.Options, ctrlOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error)
 
 func register(r chi.Router, pattern string, method v1.OperationMethod, opts controller.Options, factory controllerFactory) {
-	r.Handle(pattern, dynamicOperationType(method, opts, factory))
+	r.Handle(pattern, dynamicOperationHandler(method, opts, factory))
 }
 
-func dynamicOperationType(method v1.OperationMethod, opts controller.Options, factory func(opts controller.Options, ctrlOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error)) http.Handler {
+func dynamicOperationHandler(method v1.OperationMethod, opts controller.Options, factory func(opts controller.Options, ctrlOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error)) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := resources.Parse(r.URL.Path)
 		if err != nil {
@@ -116,7 +124,14 @@ func dynamicOperationType(method v1.OperationMethod, opts controller.Options, fa
 		opts := opts
 		opts.ResourceType = id.Type()
 
-		client, err := opts.DataProvider.GetStorageClient(r.Context(), id.Type())
+		// Special case the operation status and operation result types.
+		//
+		// This is special-casing that all of our resource providers do to store a single data row for both operation statuses and operation results.
+		if strings.HasSuffix(strings.ToLower(opts.ResourceType), "locations/operationstatuses") || strings.HasSuffix(strings.ToLower(opts.ResourceType), "locations/operationresults") {
+			opts.ResourceType = id.ProviderNamespace() + "/operationstatuses"
+		}
+
+		client, err := opts.DataProvider.GetStorageClient(r.Context(), opts.ResourceType)
 		if err != nil {
 			result := rest.NewBadRequestResponse(err.Error())
 			err = result.Apply(r.Context(), w, r)

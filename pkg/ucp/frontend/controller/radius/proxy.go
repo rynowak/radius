@@ -115,7 +115,7 @@ func (p *ProxyController) Run(ctx context.Context, w http.ResponseWriter, req *h
 
 	downstreamURL, err := resourcegroups.ValidateDownstream(ctx, p.StorageClient(), id, v1.LocationGlobal, apiVersion)
 	if errors.Is(err, &resourcegroups.NotFoundError{}) {
-		return armrpc_rest.NewNotFoundResponse(id), nil
+		return armrpc_rest.NewNotFoundResponseWithCause(id, err.Error()), nil
 	} else if errors.Is(err, &resourcegroups.InvalidError{}) {
 		response := v1.ErrorResponse{Error: v1.ErrorDetails{Code: v1.CodeInvalid, Message: err.Error(), Target: id.String()}}
 		return armrpc_rest.NewBadRequestARMResponse(response), nil

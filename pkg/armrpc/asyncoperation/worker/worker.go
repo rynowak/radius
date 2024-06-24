@@ -129,6 +129,7 @@ func New(
 // resource and operation status, and running the operation. It returns an error if it fails to start the dequeuer.
 func (w *AsyncRequestProcessWorker) Start(ctx context.Context) error {
 	logger := ucplog.FromContextOrDiscard(ctx)
+	logger.Info("Listening to queue", "queue", w.requestQueue)
 	msgCh, err := queue.StartDequeuer(ctx, w.requestQueue, queue.WithDequeueInterval(w.options.DequeueIntervalDuration))
 	if err != nil {
 		return err
@@ -140,6 +141,8 @@ func (w *AsyncRequestProcessWorker) Start(ctx context.Context) error {
 		if err := w.sem.Acquire(ctx, 1); err != nil {
 			break
 		}
+
+		logger.Info("Got queue message", "id", msg.ID)
 
 		go func(msgreq *queue.Message) {
 			defer w.sem.Release(1)

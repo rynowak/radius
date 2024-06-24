@@ -41,14 +41,17 @@ const (
 // Service is a service to run AsyncReqeustProcessWorker.
 type Service struct {
 	worker.Service
+
+	options hostoptions.HostOptions
 }
 
 // NewService creates new service instance to run AsyncRequestProcessWorker.
 func NewService(options hostoptions.HostOptions) *Service {
 	return &Service{
+		options: options,
 		Service: worker.Service{
 			ProviderName: UCPProviderName,
-			Options:      options,
+			Config:       options.Config,
 		},
 	}
 }
@@ -66,12 +69,12 @@ func (w *Service) Run(ctx context.Context) error {
 	}
 
 	workerOpts := worker.Options{}
-	if w.Options.Config.WorkerServer != nil {
-		if w.Options.Config.WorkerServer.MaxOperationConcurrency != nil {
-			workerOpts.MaxOperationConcurrency = *w.Options.Config.WorkerServer.MaxOperationConcurrency
+	if w.Config.WorkerServer != nil {
+		if w.Config.WorkerServer.MaxOperationConcurrency != nil {
+			workerOpts.MaxOperationConcurrency = *w.Config.WorkerServer.MaxOperationConcurrency
 		}
-		if w.Options.Config.WorkerServer.MaxOperationRetryCount != nil {
-			workerOpts.MaxOperationRetryCount = *w.Options.Config.WorkerServer.MaxOperationRetryCount
+		if w.Config.WorkerServer.MaxOperationRetryCount != nil {
+			workerOpts.MaxOperationRetryCount = *w.Config.WorkerServer.MaxOperationRetryCount
 		}
 	}
 
@@ -80,7 +83,7 @@ func (w *Service) Run(ctx context.Context) error {
 	}
 
 	transport := otelhttp.NewTransport(http.DefaultTransport)
-	err := RegisterControllers(ctx, w.Controllers, w.Options.UCPConnection, transport, opts)
+	err := RegisterControllers(ctx, w.Controllers, w.options.UCPConnection, transport, opts)
 	if err != nil {
 		return err
 	}

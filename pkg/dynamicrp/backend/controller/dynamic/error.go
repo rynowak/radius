@@ -14,21 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package inmemory
+package dynamic
 
-import (
-	"testing"
+type InvalidResourceTypeError struct {
+}
 
-	shared "github.com/radius-project/radius/test/ucp/storetest"
-)
-
-func Test_InMemoryClient(t *testing.T) {
-	client := NewClient("test")
-
-	clear := func(t *testing.T) {
-		client.Clear()
-	}
-
-	// The actual test logic lives in a shared package, we're just doing the setup here.
-	shared.RunTest(t, client, clear)
+func (e *InvalidResourceTypeError) Error() string {
+	return "invalid"
 }

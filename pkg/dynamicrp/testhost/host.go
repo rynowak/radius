@@ -49,6 +49,7 @@ func Start(t *testing.T) (*TestHost, *testserver.TestServer) {
 		},
 		Queue: queueprovider.QueueProviderOptions{
 			Provider: queueprovider.TypeInmemory,
+			Name:     "dynamic-rp",
 		},
 		Secrets: secretprovider.SecretProviderOptions{
 			Provider: secretprovider.TypeInMemorySecret,

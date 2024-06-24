@@ -134,11 +134,22 @@ func ValidateResourceType(ctx context.Context, client store.StorageClient, id re
 	// Resource types are case-intensitive so we have to iterate.
 	var resourceType *datamodel.LocationResourceTypeConfiguration
 	search := strings.TrimPrefix(strings.ToLower(id.Type()), strings.ToLower(id.ProviderNamespace())+resources.SegmentSeparator)
-	for name, rt := range location.Properties.ResourceTypes {
-		if strings.EqualFold(name, search) {
-			copy := rt
-			resourceType = &copy
-			break
+
+	// We special-case two pseudo-resource types: "locations/operationstatuses" and "locations/operationresults".
+	// If the resource type is one of these, we can return the downstream URL directly.
+	if strings.EqualFold(search, "locations/operationstatuses") || strings.EqualFold(search, "locations/operationresults") {
+		resourceType = &datamodel.LocationResourceTypeConfiguration{
+			APIVersions: map[string]datamodel.LocationAPIVersionConfiguration{
+				apiVersion: {}, // Assume this API version is supported.
+			},
+		}
+	} else {
+		for name, rt := range location.Properties.ResourceTypes {
+			if strings.EqualFold(name, search) {
+				copy := rt
+				resourceType = &copy
+				break
+			}
 		}
 	}
 

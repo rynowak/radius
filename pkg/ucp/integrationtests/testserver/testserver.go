@@ -42,6 +42,7 @@ import (
 	backend_ctrl "github.com/radius-project/radius/pkg/armrpc/asyncoperation/controller"
 	"github.com/radius-project/radius/pkg/armrpc/asyncoperation/statusmanager"
 	"github.com/radius-project/radius/pkg/armrpc/asyncoperation/worker"
+
 	"github.com/radius-project/radius/pkg/armrpc/rpctest"
 	"github.com/radius-project/radius/pkg/armrpc/servicecontext"
 	aztoken "github.com/radius-project/radius/pkg/azure/tokencredentials"
@@ -64,6 +65,11 @@ import (
 	"github.com/radius-project/radius/pkg/validator"
 	"github.com/radius-project/radius/swagger"
 	"github.com/radius-project/radius/test/testcontext"
+)
+
+const (
+	// OperationTimeoutDefault is the default timeout for waiting for an operation to complete.
+	OperationTimeoutDefault = 30 * time.Second
 )
 
 // NoModules can be used to start a test server without any modules. This is useful for testing the server itself and core functionality
@@ -365,8 +371,6 @@ func StartWithETCD(t *testing.T, configureModules func(options modules.Options) 
 	require.NoError(t, err, "failed to query etcd")
 	logger.Info("Connected to data store")
 
-	// TODO: start worker
-
 	ucp := &TestServer{
 		BaseURL: server.URL + pathBase,
 		Clients: &TestServerClients{
@@ -502,7 +506,7 @@ func (tr *TestResponse) EqualsResponse(statusCode int, body []byte) {
 
 	tr.removeSystemData(actual)
 
-	require.NoError(tr.t, err, "unmarshalling actual response failed")
+	require.NoError(tr.t, err, "unmarshalling actual response failed. Got '%v'", tr.Body.String())
 	require.EqualValues(tr.t, expected, actual, "response body did not match expected")
 	require.Equal(tr.t, statusCode, tr.Raw.StatusCode, "status code did not match expected")
 }
@@ -578,8 +582,8 @@ func (tr *TestResponse) WaitForOperationComplete(timeout *time.Duration) *TestRe
 		case <-poller.C:
 			// The Location header should give us the operation status URL.
 			response := tr.server.MakeRequest(http.MethodGet, tr.Raw.Header.Get("Azure-AsyncOperation"), nil)
-			// To determine if the response is terminal we need to read the provisioning state field.
 
+			// To determine if the response is terminal we need to read the provisioning state field.
 			operationStatus := v1.AsyncOperationStatus{}
 			response.ReadAs(&operationStatus)
 			if operationStatus.Status.IsTerminal() {

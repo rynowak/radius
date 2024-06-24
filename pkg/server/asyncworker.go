@@ -33,15 +33,17 @@ import (
 type AsyncWorker struct {
 	worker.Service
 
+	options        hostoptions.HostOptions
 	handlerBuilder []builder.Builder
 }
 
 // NewAsyncWorker creates new service instance to run AsyncRequestProcessWorker.
 func NewAsyncWorker(options hostoptions.HostOptions, builder []builder.Builder) *AsyncWorker {
 	return &AsyncWorker{
+		options: options,
 		Service: worker.Service{
 			ProviderName: "radius",
-			Options:      options,
+			Config:       options.Config,
 		},
 		handlerBuilder: builder,
 	}
@@ -58,12 +60,12 @@ func (w *AsyncWorker) Run(ctx context.Context) error {
 		return err
 	}
 
-	k8s, err := kubeutil.NewClients(w.Options.K8sConfig)
+	k8s, err := kubeutil.NewClients(w.options.K8sConfig)
 	if err != nil {
 		return fmt.Errorf("failed to initialize kubernetes clients: %w", err)
 	}
 
-	appModel, err := model.NewApplicationModel(w.Options.Arm, k8s.RuntimeClient, k8s.ClientSet, k8s.DiscoveryClient, k8s.DynamicClient)
+	appModel, err := model.NewApplicationModel(w.options.Arm, k8s.RuntimeClient, k8s.ClientSet, k8s.DiscoveryClient, k8s.DynamicClient)
 	if err != nil {
 		return fmt.Errorf("failed to initialize application model: %w", err)
 	}
@@ -84,12 +86,12 @@ func (w *AsyncWorker) Run(ctx context.Context) error {
 	}
 
 	workerOpts := worker.Options{}
-	if w.Options.Config.WorkerServer != nil {
-		if w.Options.Config.WorkerServer.MaxOperationConcurrency != nil {
-			workerOpts.MaxOperationConcurrency = *w.Options.Config.WorkerServer.MaxOperationConcurrency
+	if w.options.Config.WorkerServer != nil {
+		if w.options.Config.WorkerServer.MaxOperationConcurrency != nil {
+			workerOpts.MaxOperationConcurrency = *w.options.Config.WorkerServer.MaxOperationConcurrency
 		}
-		if w.Options.Config.WorkerServer.MaxOperationRetryCount != nil {
-			workerOpts.MaxOperationRetryCount = *w.Options.Config.WorkerServer.MaxOperationRetryCount
+		if w.options.Config.WorkerServer.MaxOperationRetryCount != nil {
+			workerOpts.MaxOperationRetryCount = *w.options.Config.WorkerServer.MaxOperationRetryCount
 		}
 	}
 

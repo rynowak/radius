@@ -20,15 +20,20 @@ import (
 	"context"
 	"fmt"
 
+	v1 "github.com/radius-project/radius/pkg/armrpc/api/v1"
+	ctrl "github.com/radius-project/radius/pkg/armrpc/asyncoperation/controller"
 	"github.com/radius-project/radius/pkg/armrpc/asyncoperation/worker"
 	"github.com/radius-project/radius/pkg/armrpc/hostoptions"
 	"github.com/radius-project/radius/pkg/dynamicrp"
+	"github.com/radius-project/radius/pkg/dynamicrp/backend/controller/dynamic"
+	"github.com/radius-project/radius/pkg/recipes/controllerconfig"
 )
 
 // Service runs the backend for the dynamic-rp.
 type Service struct {
 	worker.Service
 	options *dynamicrp.Options
+	recipes *controllerconfig.RecipeControllerConfig
 }
 
 // NewService creates a new service to run the dynamic-rp backend.
@@ -37,19 +42,22 @@ func NewService(options *dynamicrp.Options) *Service {
 		options: options,
 		Service: worker.Service{
 			ProviderName: "dynamic-rp",
-			Options: hostoptions.HostOptions{
-				Config: &hostoptions.ProviderConfig{
-					Bicep:           options.Config.Bicep,
-					Env:             options.Config.Environment,
-					Logging:         options.Config.Logging,
-					SecretProvider:  options.Config.Secrets,
-					QueueProvider:   options.Config.Queue,
-					StorageProvider: options.Config.Storage,
-					Terraform:       options.Config.Terraform,
-					WorkerServer:    &options.Config.Worker,
-				},
+			Config: &hostoptions.ProviderConfig{
+				Bicep:           options.Config.Bicep,
+				Env:             options.Config.Environment,
+				Logging:         options.Config.Logging,
+				SecretProvider:  options.Config.Secrets,
+				QueueProvider:   options.Config.Queue,
+				StorageProvider: options.Config.Storage,
+				Terraform:       options.Config.Terraform,
+				WorkerServer:    &options.Config.Worker,
 			},
+
+			OperationStatusManager: options.StatusManager,
+			QueueProvider:          options.QueueProvider,
+			StorageProvider:        options.StorageProvider,
 		},
+		recipes: options.Recipes,
 	}
 }
 
@@ -73,5 +81,26 @@ func (w *Service) Run(ctx context.Context) error {
 		workerOptions.MaxOperationRetryCount = *w.options.Config.Worker.MaxOperationRetryCount
 	}
 
+	err = w.registerControllers(ctx)
+	if err != nil {
+		return err
+	}
+
 	return w.Start(ctx, workerOptions)
+}
+
+func (w *Service) registerControllers(ctx context.Context) error {
+	options := ctrl.Options{
+		DataProvider: w.StorageProvider,
+	}
+
+	// Register a single controller to handle all resource types.
+	err := w.Controllers.Register(ctx, worker.ResourceTypeAny, v1.OperationMethod(worker.OperationMethodAny), func(options ctrl.Options) (ctrl.Controller, error) {
+		return dynamic.NewController(options, w.recipes.Engine, w.recipes.ResourceClient, w.recipes.ConfigLoader, *w.recipes.UCPConnection)
+	}, options)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

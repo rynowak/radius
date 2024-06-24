@@ -1,0 +1,72 @@
+{
+  "id": "PLACEHOLDER",
+  "name": "Contoso.Example",
+  "type": "System.Resources/resourceProviders",
+  "location": "global",
+  "properties": {
+    "provisioningState": "Succeeded",
+    "locations": {
+      "global": {
+        "address": "internal"
+      }
+    },
+    "resourceTypes": [
+      {
+        "resourceType": "postgreSQLDatabases",
+        "locations": [
+          "global"
+        ],
+        "apiVersions": {
+          "2024-10-01-preview": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "size": {
+                  "type": "string"
+                },
+                "application": {
+                  "type": "string"
+                },
+                "environment": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "object",
+                  "properties": {
+                    "binding": {
+                      "type": "object",
+                      "properties": {
+                        "uri": {
+                          "type": "string"
+                        },
+                        "username": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "host": {
+                          "type": "string"
+                        },
+                        "port": {
+                          "type": "number"
+                        },
+                        "database": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "capabilities": [
+          "Recipe"
+        ],
+        "defaultApiVersion": "2024-10-01-preview"
+      }
+    ]
+  }
+}
