@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/http"
 
+	daprclient "github.com/dapr/go-sdk/client"
 	v1 "github.com/radius-project/radius/pkg/armrpc/api/v1"
 	ctrl "github.com/radius-project/radius/pkg/armrpc/asyncoperation/controller"
 	"github.com/radius-project/radius/pkg/portableresources/backend/controller"
@@ -36,6 +37,18 @@ import (
 
 var _ ctrl.Controller = (*Controller)(nil)
 
+type Notification struct {
+	ID     string             `json:"id"`
+	Reason NotificationReason `json:"reason"`
+}
+
+type NotificationReason string
+
+const (
+	NotificationReasonUpdated NotificationReason = "updated"
+	NotificationReasonDeleted NotificationReason = "deleted"
+)
+
 // Controller is the async operation controller to perform background processing on tracked resources.
 type Controller struct {
 	ctrl.BaseController
@@ -44,10 +57,16 @@ type Controller struct {
 	engine       engine.Engine
 	client       processors.ResourceClient
 	configLoader configloader.ConfigurationLoader
+	dapr         daprclient.Client
 }
 
 // NewController creates a new Controller controller which is used to process resources asynchronously.
 func NewController(opts ctrl.Options, engine engine.Engine, client processors.ResourceClient, configLoader configloader.ConfigurationLoader) (ctrl.Controller, error) {
+	dapr, err := daprclient.NewClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Dapr client: %w", err)
+	}
+
 	return &Controller{
 		BaseController: ctrl.NewBaseAsyncController(opts),
 
@@ -55,6 +74,7 @@ func NewController(opts ctrl.Options, engine engine.Engine, client processors.Re
 		engine:       engine,
 		client:       client,
 		configLoader: configLoader,
+		dapr:         dapr,
 	}, nil
 }
 
@@ -120,6 +140,16 @@ func (c *Controller) processDelete(ctx context.Context, request *ctrl.Request, p
 		return ctrl.Result{}, err
 	}
 
+	notification := &Notification{
+		ID:     request.ResourceID,
+		Reason: NotificationReasonUpdated,
+	}
+
+	err = c.dapr.PublishEvent(ctx, "pubsub", "ucp-notifications", notification)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	return result, nil
 }
 
@@ -136,6 +166,16 @@ func (c *Controller) processPut(ctx context.Context, request *ctrl.Request, prov
 	}
 
 	result, err := inner.Run(ctx, request)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	notification := &Notification{
+		ID:     request.ResourceID,
+		Reason: NotificationReasonUpdated,
+	}
+
+	err = c.dapr.PublishEvent(ctx, "pubsub", "ucp-notifications", notification)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
