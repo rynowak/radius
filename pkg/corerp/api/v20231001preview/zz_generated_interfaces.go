@@ -43,15 +43,6 @@ type RecipePropertiesClassification interface {
 	GetRecipeProperties() *RecipeProperties
 }
 
-// RecipePropertiesUpdateClassification provides polymorphic access to related types.
-// Call the interface's GetRecipePropertiesUpdate() method to access the common type.
-// Use a type switch to determine the concrete type.  The possible types are:
-// - *BicepRecipePropertiesUpdate, *DaprWorkflowRecipePropertiesUpdate, *RecipePropertiesUpdate, *TerraformRecipePropertiesUpdate
-type RecipePropertiesUpdateClassification interface {
-	// GetRecipePropertiesUpdate returns the RecipePropertiesUpdate content of the underlying type.
-	GetRecipePropertiesUpdate() *RecipePropertiesUpdate
-}
-
 // VolumeClassification provides polymorphic access to related types.
 // Call the interface's GetVolume() method to access the common type.
 // Use a type switch to determine the concrete type.  The possible types are:

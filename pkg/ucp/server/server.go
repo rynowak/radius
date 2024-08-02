@@ -38,10 +38,12 @@ import (
 	"github.com/radius-project/radius/pkg/ucp/frontend/api"
 	"github.com/radius-project/radius/pkg/ucp/hosting"
 	"github.com/radius-project/radius/pkg/ucp/hostoptions"
+	"github.com/radius-project/radius/pkg/ucp/notifications"
 	qprovider "github.com/radius-project/radius/pkg/ucp/queue/provider"
 	"github.com/radius-project/radius/pkg/ucp/rest"
 	"github.com/radius-project/radius/pkg/ucp/secret/provider"
 	"github.com/radius-project/radius/pkg/ucp/ucplog"
+	"github.com/radius-project/radius/pkg/ucp/watcher"
 
 	kube_rest "k8s.io/client-go/rest"
 )
@@ -213,6 +215,12 @@ func NewServer(options *Options) (*hosting.Host, error) {
 		UCPConnection: options.UCPConnection,
 	}
 	hostingServices = append(hostingServices, backend.NewService(backendServiceOptions))
+
+	hostingServices = append(hostingServices, &watcher.Service{Options: backendServiceOptions})
+	hostingServices = append(hostingServices, &notifications.Service{
+		Options:     backendServiceOptions,
+		ServiceName: "UCP notification listener",
+	})
 
 	options.TracerProviderOptions.ServiceName = "ucp"
 	hostingServices = append(hostingServices, &trace.Service{Options: options.TracerProviderOptions})

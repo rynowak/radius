@@ -7,19 +7,19 @@
       "$ref": "applications/applications.core/2023-10-01-preview/types.json#/126"
     },
     "Applications.Core/environments@2023-10-01-preview": {
-      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/167"
+      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/169"
     },
     "Applications.Core/extenders@2023-10-01-preview": {
-      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/188"
+      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/190"
     },
     "Applications.Core/gateways@2023-10-01-preview": {
-      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/210"
+      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/212"
     },
     "Applications.Core/secretStores@2023-10-01-preview": {
-      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/246"
+      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/248"
     },
     "Applications.Core/volumes@2023-10-01-preview": {
-      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/284"
+      "$ref": "applications/applications.core/2023-10-01-preview/types.json#/286"
     },
     "Applications.Dapr/configurationStores@2023-10-01-preview": {
       "$ref": "applications/applications.dapr/2023-10-01-preview/types.json#/49"

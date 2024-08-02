@@ -109,7 +109,7 @@ output result object = {
     '/planes/kubernetes/local/namespaces/${deployment.metadata.namespace}/providers/apps/Deployment/${deployment.metadata.name}'
   ]
   secrets: {
-    uri: 'postgresql://${username}:${password}@${service.metadata.name}.${service.metadata.namespace}.svc.cluster.local:5432/postgres'
+    uri: 'postgresql://${username}:${password}@${service.metadata.name}.${service.metadata.namespace}.svc.cluster.local:5432/postgres?count=${service.metadata.annotations.count}'
     #disable-next-line outputs-should-not-contain-secrets
     password: password
   }

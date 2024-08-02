@@ -8,6 +8,18 @@
     "recipes": {
       "Contoso.Example/postgreSQLDatabases": {
         "default": {
+          "templateKind": "bicep",
+          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest-counter"
+        },
+        "bicep": {
+          "templateKind": "bicep",
+          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest"
+        },
+        "counter": {
+          "templateKind": "bicep",
+          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest-counter"
+        },
+        "workflow": {
           "templateKind": "daprWorkflow",
           "appId": "sample",
           "templatePath": "zzzz",
