@@ -568,9 +568,42 @@ func (dp *deploymentProcessor) getResourceDataByID(ctx context.Context, resource
 			return ResourceData{}, fmt.Errorf(errMsg, resourceID.String(), err)
 		}
 		return dp.buildResourceDependency(resourceID, obj.Properties.Application, obj, obj.Properties.Status.OutputResources, obj.ComputedValues, obj.SecretValues, portableresources.RecipeData{})
+	case strings.ToLower("comcast.platform/globaldatabases"):
+		obj := &GlobalDB{}
+		if err = resource.As(obj); err != nil {
+			return ResourceData{}, fmt.Errorf(errMsg, resourceID.String(), err)
+		}
+		computedValues := map[string]any{
+			"hostname": obj.Properties.Status.Binding.Hostname,
+			"port":     obj.Properties.Status.Binding.Port,
+		}
+		secretValues := map[string]rpv1.SecretValueReference{}
+
+		return dp.buildResourceDependency(resourceID, obj.Properties.Application, obj, obj.Properties.Status.OutputResources, computedValues, secretValues, portableresources.RecipeData{})
 	default:
 		return ResourceData{}, fmt.Errorf("unsupported resource type: %q for resource ID: %q", resourceType, resourceID.String())
 	}
+}
+
+type GlobalDB struct {
+	v1.DataModelInterface
+	Properties GlobalDBProperties `json:"properties"`
+}
+
+type GlobalDBProperties struct {
+	Application string         `json:"application"`
+	Environment string         `json:"environment"`
+	Status      GlobalDBStatus `json:"status"`
+}
+
+type GlobalDBStatus struct {
+	Binding         GlobalDBBinding       `json:"binding"`
+	OutputResources []rpv1.OutputResource `json:"outputResources"`
+}
+
+type GlobalDBBinding struct {
+	Port     int    `json:"port"`
+	Hostname string `json:"hostname"`
 }
 
 func (dp *deploymentProcessor) buildResourceDependency(resourceID resources.ID, applicationID string, resource v1.DataModelInterface, outputResources []rpv1.OutputResource, computedValues map[string]any, secretValues map[string]rpv1.SecretValueReference, recipeData portableresources.RecipeData) (ResourceData, error) {

@@ -38,6 +38,7 @@ import (
 	"github.com/radius-project/radius/pkg/ucp/data"
 	"github.com/radius-project/radius/pkg/ucp/dataprovider"
 	"github.com/radius-project/radius/pkg/ucp/hosting"
+	"github.com/radius-project/radius/pkg/ucp/notifications"
 	"github.com/radius-project/radius/pkg/ucp/ucplog"
 
 	corerp_setup "github.com/radius-project/radius/pkg/corerp/setup"
@@ -107,6 +108,17 @@ func main() {
 		server.NewAPIService(options, builders),
 		server.NewAsyncWorker(options, builders),
 	)
+
+	hostingSvc = append(hostingSvc, &notifications.Service{
+		Options:     options,
+		ServiceName: "Applications RP Notifications",
+		Port:        7010,
+		Filter: &notifications.ContainerFilter{
+			UCP:   options.UCPConnection,
+			Data:  options.Config.StorageProvider,
+			Queue: options.Config.QueueProvider,
+		},
+	})
 
 	tracerOpts := options.Config.TracerProvider
 	tracerOpts.ServiceName = serviceName

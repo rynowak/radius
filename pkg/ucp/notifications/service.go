@@ -33,9 +33,10 @@ type Service struct {
 	// Options is the host options for the service.
 	Options     hostoptions.HostOptions
 	ServiceName string
+	Port        int
+	Filter      Filter
 
 	logger logr.Logger
-	filter Filter
 }
 
 // Name returns the service name.
@@ -47,13 +48,7 @@ func (w *Service) Name() string {
 func (w *Service) Run(ctx context.Context) error {
 	w.logger = ucplog.FromContextOrDiscard(ctx)
 
-	w.filter = &DeclarativeFilter{
-		ucp:   w.Options.UCPConnection,
-		data:  w.Options.Config.StorageProvider,
-		queue: w.Options.Config.QueueProvider,
-	}
-
-	service := daprd.NewService(":7009")
+	service := daprd.NewService(fmt.Sprintf(":%d", w.Port))
 	subscription := common.Subscription{
 		PubsubName: "pubsub",
 		Topic:      "ucp-notifications",
@@ -97,7 +92,7 @@ func (w *Service) Run(ctx context.Context) error {
 func (w *Service) eventHandler(ctx context.Context, e *common.TopicEvent) (retry bool, err error) {
 	w.logger.Info("Received event", "event", e)
 
-	if w.filter == nil {
+	if w.Filter == nil {
 		return false, nil
 	}
 
@@ -107,7 +102,7 @@ func (w *Service) eventHandler(ctx context.Context, e *common.TopicEvent) (retry
 		return false, fmt.Errorf("failed to unmarshal event data: %w", err)
 	}
 
-	err = w.filter.Send(ctx, n)
+	err = w.Filter.Send(ctx, n)
 	if err != nil {
 		return true, fmt.Errorf("failed to send notification: %w", err)
 	}

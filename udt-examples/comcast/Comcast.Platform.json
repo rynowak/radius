@@ -1,0 +1,54 @@
+{
+  "location": "global",
+  "properties": {
+    "locations": {
+      "global": {
+        "address": "internal"
+      }
+    },
+    "resourceTypes": [
+      {
+        "resourceType": "globalDatabases",
+        "routingType": "Internal",
+        "locations": [
+          "global"
+        ],
+        "apiVersions": {
+          "2024-10-01-preview": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "application": {
+                  "type": "string"
+                },
+                "environment": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "object",
+                  "properties": {
+                    "binding": {
+                      "type": "object",
+                      "properties": {
+                        "hostname": {
+                          "type": "string"
+                        },
+                        "port": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "capabilities": [
+          "Recipe"
+        ],
+        "defaultApiVersion": "2024-10-01-preview"
+      }
+    ]
+  }
+}

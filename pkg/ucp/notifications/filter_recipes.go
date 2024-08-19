@@ -54,9 +54,9 @@ type Filter interface {
 }
 
 type DeclarativeFilter struct {
-	ucp   sdk.Connection
-	data  dataprovider.StorageProviderOptions
-	queue queueprovider.QueueProviderOptions
+	UCP   sdk.Connection
+	Data  dataprovider.StorageProviderOptions
+	Queue queueprovider.QueueProviderOptions
 }
 
 func (f *DeclarativeFilter) Send(ctx context.Context, notification Notification) error {
@@ -83,7 +83,7 @@ func (f *DeclarativeFilter) Send(ctx context.Context, notification Notification)
 }
 
 func (f *DeclarativeFilter) recipeTypes(ctx context.Context) ([]string, error) {
-	client, err := v20231001preview.NewResourceProvidersClient(&aztoken.AnonymousCredential{}, sdk.NewClientOptions(f.ucp))
+	client, err := v20231001preview.NewResourceProvidersClient(&aztoken.AnonymousCredential{}, sdk.NewClientOptions(f.UCP))
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +131,7 @@ func (f *DeclarativeFilter) recipeTypes(ctx context.Context) ([]string, error) {
 }
 
 func (f *DeclarativeFilter) impactedResources(ctx context.Context, resourceType string, notification Notification) ([]resources.ID, error) {
-	client, err := generated.NewGenericResourcesClient("/planes/radius/local", resourceType, &aztoken.AnonymousCredential{}, sdk.NewClientOptions(f.ucp))
+	client, err := generated.NewGenericResourcesClient("/planes/radius/local", resourceType, &aztoken.AnonymousCredential{}, sdk.NewClientOptions(f.UCP))
 	if err != nil {
 		return nil, err
 	}
@@ -323,11 +323,11 @@ func (f *DeclarativeFilter) setProvisioningState(resource any, ps v1.Provisionin
 }
 
 func (f *DeclarativeFilter) storageClient(ctx context.Context, resourceType string) (store.StorageClient, error) {
-	return dataprovider.NewStorageProvider(f.data).GetStorageClient(ctx, resourceType)
+	return dataprovider.NewStorageProvider(f.Data).GetStorageClient(ctx, resourceType)
 }
 
 func (f *DeclarativeFilter) queueClient(ctx context.Context) (queue.Client, error) {
-	return queueprovider.New(f.queue).GetClient(ctx)
+	return queueprovider.New(f.Queue).GetClient(ctx)
 }
 
 func (f *DeclarativeFilter) statusManager(ctx context.Context) statusmanager.StatusManager {
@@ -336,5 +336,5 @@ func (f *DeclarativeFilter) statusManager(ctx context.Context) statusmanager.Sta
 		return nil
 	}
 
-	return statusmanager.New(dataprovider.NewStorageProvider(f.data), queueClient, "global")
+	return statusmanager.New(dataprovider.NewStorageProvider(f.Data), queueClient, "global")
 }

@@ -86,7 +86,9 @@ func (aom *statusManager) getClient(ctx context.Context, id resources.ID) (store
 // a request message. If an error occurs, the status is deleted using the storeClient.
 func (aom *statusManager) QueueAsyncOperation(ctx context.Context, sCtx *v1.ARMRequestContext, options QueueOperationOptions) error {
 	ctx, span := trace.StartProducerSpan(ctx, "statusmanager.QueueAsyncOperation publish", trace.FrontendTracerName)
-	defer span.End()
+	if span != nil {
+		defer span.End()
+	}
 
 	if aom.queue == nil {
 		return errors.New("queue client is unset")

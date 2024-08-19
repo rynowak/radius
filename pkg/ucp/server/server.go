@@ -220,6 +220,12 @@ func NewServer(options *Options) (*hosting.Host, error) {
 	hostingServices = append(hostingServices, &notifications.Service{
 		Options:     backendServiceOptions,
 		ServiceName: "UCP notification listener",
+		Port:        7009,
+		Filter: &notifications.DeclarativeFilter{
+			UCP:   options.UCPConnection,
+			Data:  options.Config.StorageProvider,
+			Queue: options.Config.QueueProvider,
+		},
 	})
 
 	options.TracerProviderOptions.ServiceName = "ucp"

@@ -6,6 +6,13 @@
       "namespace": "default"
     },
     "recipes": {
+      "Comcast.Platform/globalDatabases": {
+        "default": {
+          "templateKind": "terraform",
+          "templatePath": "git::github.com/rynowak/private-recipes",
+          "templateVersion": ""
+        }
+      },
       "Contoso.Example/postgreSQLDatabases": {
         "default": {
           "templateKind": "bicep",
@@ -25,6 +32,19 @@
           "templatePath": "zzzz",
           "putWorkflow": "PostgresSQLDatabasesPut",
           "deleteWorkflow": "PostgresSQLDatabasesDelete"
+        }
+      }
+    },
+    "recipeConfig": {
+      "terraform": {
+        "authentication": {
+          "git": {
+            "pat": {
+              "github.com":{
+                "secret": "/planes/radius/local/resourceGroups/default/providers/applications.core/secretstores/recipes-pat"
+              }
+            }
+          }
         }
       }
     }

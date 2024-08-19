@@ -1,0 +1,9 @@
+kind: GlobalDatabase
+apiVersion: platform.comcast.com/v1
+metadata:
+  name: db
+  namespace: default-my-test-app
+status:
+  port: 3306
+  #hostname: server1234.west-us2.comcast.com
+  hostname: server5678.west-us1.comcast.com
