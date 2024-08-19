@@ -96,7 +96,7 @@ func (w *Service) registerControllers(ctx context.Context) error {
 
 	// Register a single controller to handle all resource types.
 	err := w.Controllers.Register(ctx, worker.ResourceTypeAny, v1.OperationMethod(worker.OperationMethodAny), func(options ctrl.Options) (ctrl.Controller, error) {
-		return dynamic.NewController(options, w.recipes.Engine, w.recipes.ResourceClient, w.recipes.ConfigLoader, *w.recipes.UCPConnection)
+		return dynamic.NewController(options, w.recipes.Engine, w.recipes.ResourceClient, w.recipes.ConfigLoader, *w.recipes.UCPConnection, w.recipes.Dapr)
 	}, options)
 	if err != nil {
 		return err

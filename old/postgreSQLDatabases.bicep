@@ -1,4 +1,4 @@
-import kubernetes as kubernetes {
+extension kubernetes with {
   kubeConfig: ''
   namespace: context.runtime.kubernetes.namespace
 }
@@ -97,6 +97,8 @@ resource service 'core/Service@v1' = {
   }
 }
 
+var pw = deployment.metadata.annotations[?'password'] ?? 'p@ssword'
+
 output result object = {
   values: {
     host: '${service.metadata.name}.${service.metadata.namespace}.svc.cluster.local'
@@ -109,8 +111,8 @@ output result object = {
     '/planes/kubernetes/local/namespaces/${deployment.metadata.namespace}/providers/apps/Deployment/${deployment.metadata.name}'
   ]
   secrets: {
-    uri: 'postgresql://${username}:${password}@${service.metadata.name}.${service.metadata.namespace}.svc.cluster.local:5432/postgres?count=${service.metadata.annotations.count}'
+    uri: 'postgresql://${username}:${pw}@${service.metadata.name}.${service.metadata.namespace}.svc.cluster.local:5432/postgres?'
     #disable-next-line outputs-should-not-contain-secrets
-    password: password
+    password: pw
   }
 }

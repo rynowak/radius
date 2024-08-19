@@ -75,7 +75,7 @@ func (w *AsyncWorker) Run(ctx context.Context) error {
 			DataProvider: w.StorageProvider,
 			KubeClient:   k8s.RuntimeClient,
 			GetDeploymentProcessor: func() deployment.DeploymentProcessor {
-				return deployment.NewDeploymentProcessor(appModel, w.StorageProvider, k8s.RuntimeClient, k8s.ClientSet)
+				return deployment.NewDeploymentProcessor(appModel, w.StorageProvider, k8s.RuntimeClient, k8s.ClientSet, w.options.UCPConnection)
 			},
 		}
 

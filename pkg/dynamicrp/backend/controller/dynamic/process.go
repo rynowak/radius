@@ -68,20 +68,17 @@ func NewController(
 	engine engine.Engine,
 	client processors.ResourceClient,
 	configLoader configloader.ConfigurationLoader,
-	ucp sdk.Connection) (ctrl.Controller, error) {
+	ucp sdk.Connection,
+	dapr daprclient.Client) (ctrl.Controller, error) {
 
 	factory, err := v20231001preview.NewClientFactory(&aztoken.AnonymousCredential{}, sdk.NewClientOptions(ucp))
 	if err != nil {
 		return nil, err
 	}
 
-	dapr, err := daprclient.NewClient()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Dapr client: %w", err)
-	}
-
 	return &Controller{
 		BaseController:    ctrl.NewBaseAsyncController(opts),
+		opts:              opts,
 		engine:            engine,
 		client:            client,
 		configLoader:      configLoader,
@@ -141,12 +138,24 @@ func (c *Controller) validateResourceType(ctx context.Context, id resources.ID, 
 	return &response.APIVersionResource, nil
 }
 
-func (c *Controller) processDelete(ctx context.Context, request *ctrl.Request, resourceType *v20231001preview.APIVersionResource) (ctrl.Result, error) {
+func (c *Controller) processDelete(ctx context.Context, request *ctrl.Request, apiVersion *v20231001preview.APIVersionResource) (ctrl.Result, error) {
 	p := &dynamicProcessor{
-		APIVersion: resourceType,
+		APIVersion: apiVersion,
 	}
 
-	inner, err := controller.NewDeleteResource(c.opts, p, c.engine, c.configLoader)
+	id, err := resources.ParseResource(request.ResourceID)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	opts := c.opts
+	opts.ResourceType = id.Type()
+	opts.StorageClient, err = opts.DataProvider.GetStorageClient(ctx, opts.ResourceType)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	inner, err := controller.NewDeleteResource(opts, p, c.engine, c.configLoader)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -156,25 +165,40 @@ func (c *Controller) processDelete(ctx context.Context, request *ctrl.Request, r
 		return ctrl.Result{}, err
 	}
 
-	notification := &Notification{
-		ID:     request.ResourceID,
-		Reason: NotificationReasonUpdated,
-	}
+	if c.dapr != nil {
+		notification := &Notification{
+			ID:     request.ResourceID,
+			Reason: NotificationReasonUpdated,
+		}
 
-	err = c.dapr.PublishEvent(ctx, "pubsub", "ucp-notifications", notification)
-	if err != nil {
-		return ctrl.Result{}, err
+		err = c.dapr.PublishEvent(ctx, "pubsub", "ucp-notifications", notification)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+
 	}
 
 	return result, nil
 }
 
-func (c *Controller) processPut(ctx context.Context, request *ctrl.Request, resourceType *v20231001preview.APIVersionResource) (ctrl.Result, error) {
+func (c *Controller) processPut(ctx context.Context, request *ctrl.Request, apiVersion *v20231001preview.APIVersionResource) (ctrl.Result, error) {
 	p := &dynamicProcessor{
-		APIVersion: resourceType,
+		APIVersion: apiVersion,
 	}
 
-	inner, err := controller.NewCreateOrUpdateResource(c.opts, p, c.engine, c.client, c.configLoader)
+	id, err := resources.ParseResource(request.ResourceID)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	opts := c.opts
+	opts.ResourceType = id.Type()
+	opts.StorageClient, err = opts.DataProvider.GetStorageClient(ctx, opts.ResourceType)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	inner, err := controller.NewCreateOrUpdateResource(opts, p, c.engine, c.client, c.configLoader)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -184,14 +208,16 @@ func (c *Controller) processPut(ctx context.Context, request *ctrl.Request, reso
 		return ctrl.Result{}, err
 	}
 
-	notification := &Notification{
-		ID:     request.ResourceID,
-		Reason: NotificationReasonUpdated,
-	}
+	if c.dapr != nil {
+		notification := &Notification{
+			ID:     request.ResourceID,
+			Reason: NotificationReasonUpdated,
+		}
 
-	err = c.dapr.PublishEvent(ctx, "pubsub", "ucp-notifications", notification)
-	if err != nil {
-		return ctrl.Result{}, err
+		err = c.dapr.PublishEvent(ctx, "pubsub", "ucp-notifications", notification)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	}
 
 	return result, nil

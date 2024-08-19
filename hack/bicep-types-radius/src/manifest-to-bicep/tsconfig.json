@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "module": "CommonJS",
+    "noEmitOnError": true,
+    "noImplicitReturns": true,
+    "sourceMap": true,
+    "declarationMap": true,
+    "strict": true,
+    "declaration": true,
+    "stripInternal": true,
+    "noEmitHelpers": false,
+    "target": "ES2022",
+    "types": ["node"],
+    "esModuleInterop": true,
+    "lib": ["es2020"],
+    "newLine": "LF",
+    "outDir": "dist",
+    "rootDir": "."
+  },
+  "exclude": ["dist", "node_modules"]
+}

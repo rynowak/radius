@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	v1 "github.com/radius-project/radius/pkg/armrpc/api/v1"
 	ctrl "github.com/radius-project/radius/pkg/armrpc/asyncoperation/controller"
@@ -44,10 +45,13 @@ type TrackedResourceProcessController struct {
 
 	// Updater is the utility struct that can perform updates on tracked resources. This can be modified for testing.
 	updater updater
+
+	// defaultDownstream is the address of the dynamic resource provider to proxy requests to.
+	defaultDownstream *url.URL
 }
 
 // NewTrackedResourceProcessController creates a new TrackedResourceProcessController controller which is used to process resources asynchronously.
-func NewTrackedResourceProcessController(opts ctrl.Options, transport http.RoundTripper) (ctrl.Controller, error) {
+func NewTrackedResourceProcessController(opts ctrl.Options, transport http.RoundTripper, defaultDownstream *url.URL) (ctrl.Controller, error) {
 	return &TrackedResourceProcessController{
 		BaseController: ctrl.NewBaseAsyncController(opts),
 		updater:        trackedresource.NewUpdater(opts.StorageClient, &http.Client{Transport: transport}),
@@ -75,6 +79,15 @@ func (c *TrackedResourceProcessController) Run(ctx context.Context, request *ctr
 		return ctrl.NewFailedResult(v1.ErrorDetails{Code: v1.CodeInvalid, Message: err.Error(), Target: request.ResourceID}), nil
 	} else if err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to validate downstream: %w", err)
+	}
+
+	if downstreamURL == nil {
+		downstreamURL = c.defaultDownstream
+	}
+
+	if downstreamURL == nil {
+		message := "No downstream address was configured for the resource provider, and no default downstream address was provided"
+		return ctrl.NewFailedResult(v1.ErrorDetails{Code: v1.CodeInvalid, Message: message, Target: resource.Properties.ID}), nil
 	}
 
 	logger := ucplog.FromContextOrDiscard(ctx)

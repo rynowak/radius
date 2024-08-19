@@ -117,7 +117,7 @@ func StartWithOptions(t *testing.T, options *dynamicrp.Options) (*TestHost, *tes
 
 func startUCP(t *testing.T, url string) *testserver.TestServer {
 	return testserver.StartWithETCD(t, func(options modules.Options) []modules.Initializer {
-		options.DynamicRP.URL = url
+		options.Config.DynamicRP.URL = url
 		return api.DefaultModules(options)
 	})
 }

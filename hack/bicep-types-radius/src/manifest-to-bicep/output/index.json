@@ -1,0 +1,13 @@
+{
+  "resources": {
+    "Example.Platform/openAIServices@2023-10-01-preview": {
+      "$ref": "types.json#/5"
+    }
+  },
+  "resourceFunctions": {},
+  "settings": {
+    "name": "Example.Platform",
+    "version": "0.0.1",
+    "isSingleton": false
+  }
+}

@@ -64,7 +64,7 @@ var _ armrpc_controller.Controller = (*ProxyController)(nil)
 type ProxyController struct {
 	armrpc_controller.Operation[*datamodel.RadiusPlane, datamodel.RadiusPlane]
 
-	// defaultDownstrmmmm /// TODO SET ME
+	// defaultDownstream is the address of the dynamic resource provider to proxy requests to.
 	defaultDownstream *url.URL
 
 	// transport is the http.RoundTripper to use for proxying requests. Can be overridden for testing.
@@ -125,6 +125,12 @@ func (p *ProxyController) Run(ctx context.Context, w http.ResponseWriter, req *h
 
 	if downstreamURL == nil {
 		downstreamURL = p.defaultDownstream
+	}
+
+	if downstreamURL == nil {
+		message := "No downstream address was configured for the resource provider, and no default downstream address was provided"
+		response := v1.ErrorResponse{Error: v1.ErrorDetails{Code: v1.CodeInvalid, Message: message, Target: id.String()}}
+		return armrpc_rest.NewInternalServerErrorARMResponse(response), nil
 	}
 
 	proxyReq, err := p.PrepareProxyRequest(ctx, req, downstreamURL.String(), relativePath)

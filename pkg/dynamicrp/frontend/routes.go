@@ -51,7 +51,11 @@ func (s *Service) registerRoutes(r *chi.Mux) error {
 	r.NotFound(validator.APINotFoundHandler())
 	r.MethodNotAllowed(validator.APIMethodNotAllowedHandler())
 
-	r.Route(s.options.Config.Server.PathBase, func(r chi.Router) {
+	pathBase := s.options.Config.Server.PathBase
+	if pathBase == "" {
+		pathBase = "/"
+	}
+	r.Route(pathBase, func(r chi.Router) {
 		r.Route("/planes/radius/{planeName}", func(r chi.Router) {
 			r.Route("/providers/{providerNamespace}", func(r chi.Router) {
 				register(r, "GET /{resourceType}", v1.OperationPlaneScopeList, ctrlOpts, func(ctrlOpts controller.Options, resourceOpts controller.ResourceOptions[datamodel.DynamicResource]) (controller.Controller, error) {

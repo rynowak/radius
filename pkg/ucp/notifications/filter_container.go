@@ -29,7 +29,6 @@ import (
 	aztoken "github.com/radius-project/radius/pkg/azure/tokencredentials"
 	"github.com/radius-project/radius/pkg/cli/clients_new/generated"
 	"github.com/radius-project/radius/pkg/sdk"
-	"github.com/radius-project/radius/pkg/ucp/api/v20231001preview"
 	"github.com/radius-project/radius/pkg/ucp/dataprovider"
 	queue "github.com/radius-project/radius/pkg/ucp/queue/client"
 	queueprovider "github.com/radius-project/radius/pkg/ucp/queue/provider"
@@ -37,100 +36,30 @@ import (
 	"github.com/radius-project/radius/pkg/ucp/store"
 )
 
-type Notification struct {
-	ID     resources.ID `json:"id"`
-	Reason Reason       `json:"reason"`
+type ContainerFilter struct {
+	UCP   sdk.Connection
+	Data  dataprovider.StorageProviderOptions
+	Queue queueprovider.QueueProviderOptions
 }
 
-type Reason string
-
-const (
-	NotificationReasonUpdated Reason = "updated"
-	NotificationReasonDeleted Reason = "deleted"
-)
-
-type Filter interface {
-	Send(ctx context.Context, notification Notification) error
-}
-
-type DeclarativeFilter struct {
-	ucp   sdk.Connection
-	data  dataprovider.StorageProviderOptions
-	queue queueprovider.QueueProviderOptions
-}
-
-func (f *DeclarativeFilter) Send(ctx context.Context, notification Notification) error {
-	recipeTypes, err := f.recipeTypes(ctx)
+func (f *ContainerFilter) Send(ctx context.Context, notification Notification) error {
+	impacted, err := f.impactedResources(ctx, "Applications.Core/containers", notification)
 	if err != nil {
 		return err
 	}
 
-	for _, recipeType := range recipeTypes {
-		impacted, err := f.impactedResources(ctx, recipeType, notification)
+	for _, resource := range impacted {
+		err := f.notify(ctx, resource)
 		if err != nil {
 			return err
-		}
-
-		for _, resource := range impacted {
-			err := f.notify(ctx, resource)
-			if err != nil {
-				return err
-			}
 		}
 	}
 
 	return nil
 }
 
-func (f *DeclarativeFilter) recipeTypes(ctx context.Context) ([]string, error) {
-	client, err := v20231001preview.NewResourceProvidersClient(&aztoken.AnonymousCredential{}, sdk.NewClientOptions(f.ucp))
-	if err != nil {
-		return nil, err
-	}
-
-	results := []string{}
-
-	pager := client.NewListPager("local", nil)
-	for pager.More() {
-		// response, err := pager.NextPage(ctx)
-		// if err != nil {
-		// 	return nil, err
-		// }
-
-		// for _, provider := range response.Value {
-		// 	declarative := true
-		// 	// for _, location := range provider.Properties.Locations {
-		// 	// 	if location.Address == nil {
-		// 	// 		// Not a declarative resource type.
-		// 	// 		continue
-		// 	// 	} else if *location.Address != "internal" {
-		// 	// 		// Not a declarative resource type.
-		// 	// 		continue
-		// 	// 	} else {
-		// 	// 		declarative = true
-		// 	// 		break
-		// 	// 	}
-		// 	// }
-
-		// 	// if !declarative {
-		// 	// 	continue // Not a declarative resource type.
-		// 	// }
-
-		// 	// for _, resourceType := range provider.Properties.ResourceTypes {
-		// 	// 	for _, capability := range resourceType.Capabilities {
-		// 	// 		if *capability == "Recipe" {
-		// 	// 			results = append(results, *provider.Name+"/"+*resourceType.ResourceType)
-		// 	// 		}
-		// 	// 	}
-		// 	// }
-		// }
-	}
-
-	return results, nil
-}
-
-func (f *DeclarativeFilter) impactedResources(ctx context.Context, resourceType string, notification Notification) ([]resources.ID, error) {
-	client, err := generated.NewGenericResourcesClient("/planes/radius/local", resourceType, &aztoken.AnonymousCredential{}, sdk.NewClientOptions(f.ucp))
+func (f *ContainerFilter) impactedResources(ctx context.Context, resourceType string, notification Notification) ([]resources.ID, error) {
+	client, err := generated.NewGenericResourcesClient("/planes/radius/local", resourceType, &aztoken.AnonymousCredential{}, sdk.NewClientOptions(f.UCP))
 	if err != nil {
 		return nil, err
 	}
@@ -145,16 +74,16 @@ func (f *DeclarativeFilter) impactedResources(ctx context.Context, resourceType 
 		}
 
 		for _, resource := range response.Value {
-			infrastructure := f.infrastructure(resource)
+			connections := f.connections(resource)
 
 			matched := false
-			for _, id := range infrastructure {
+			for _, id := range connections {
 				if strings.EqualFold(id.String(), notification.ID.String()) {
 					results = append(results, resources.MustParse(*resource.ID))
 					matched = true
 				}
 
-				// Avoid duplicates if a resource mentioned an infrastructure resource twice.
+				// Avoid duplicates if a resource mentioned an dependency resource twice.
 				if matched {
 					break
 				}
@@ -165,52 +94,42 @@ func (f *DeclarativeFilter) impactedResources(ctx context.Context, resourceType 
 	return results, nil
 }
 
-func (f *DeclarativeFilter) infrastructure(resource *generated.GenericResource) []resources.ID {
-	// extract $properties.status.outputResources[*].id
-	obj, ok := resource.Properties["status"]
+func (f *ContainerFilter) connections(resource *generated.GenericResource) []resources.ID {
+	// extract $properties.connnections.*.source
+	obj, ok := resource.Properties["connections"]
 	if !ok {
 		return nil
 	}
 
-	status, ok := obj.(map[string]interface{})
-	if !ok {
-		return nil
-	}
-
-	obj, ok = status["outputResources"]
-	if !ok {
-		return nil
-	}
-
-	outputResources, ok := obj.([]interface{})
+	connections, ok := obj.(map[string]any)
 	if !ok {
 		return nil
 	}
 
 	results := []resources.ID{}
-	for _, outputResource := range outputResources {
-		resource, ok := outputResource.(map[string]interface{})
+	for _, obj := range connections {
+		connection, ok := obj.(map[string]any)
 		if !ok {
 			continue
 		}
 
-		obj, ok = resource["id"]
+		obj, ok = connection["source"]
 		if !ok {
 			continue
 		}
 
-		id, ok := obj.(string)
+		source, ok := obj.(string)
 		if !ok {
 			continue
 		}
 
-		results = append(results, resources.MustParse(id))
+		results = append(results, resources.MustParse(source))
 	}
 
 	return results
 }
 
-func (f *DeclarativeFilter) notify(ctx context.Context, id resources.ID) error {
+func (f *ContainerFilter) notify(ctx context.Context, id resources.ID) error {
 	storage, err := f.storageClient(ctx, id.Type())
 	if err != nil {
 		return err
@@ -244,6 +163,7 @@ func (f *DeclarativeFilter) notify(ctx context.Context, id resources.ID) error {
 		OperationType: v1.OperationType{Type: strings.ToUpper(id.Type()), Method: "PUT"},
 	}
 
+	ctx = v1.WithARMRequestContext(ctx, &sCtx)
 	err = f.statusManager(ctx).QueueAsyncOperation(ctx, &sCtx, options)
 
 	if err != nil {
@@ -259,7 +179,7 @@ func (f *DeclarativeFilter) notify(ctx context.Context, id resources.ID) error {
 	return nil
 }
 
-func (f *DeclarativeFilter) provisioningState(resource any) v1.ProvisioningState {
+func (f *ContainerFilter) provisioningState(resource any) v1.ProvisioningState {
 	b, err := json.Marshal(resource)
 	if err != nil {
 		panic(err)
@@ -295,7 +215,7 @@ func (f *DeclarativeFilter) provisioningState(resource any) v1.ProvisioningState
 	return v1.ProvisioningState(ps)
 }
 
-func (f *DeclarativeFilter) setProvisioningState(resource any, ps v1.ProvisioningState) {
+func (f *ContainerFilter) setProvisioningState(resource any, ps v1.ProvisioningState) {
 	b, err := json.Marshal(resource)
 	if err != nil {
 		panic(err)
@@ -321,19 +241,19 @@ func (f *DeclarativeFilter) setProvisioningState(resource any, ps v1.Provisionin
 	properties["provisioningState"] = string(ps)
 }
 
-func (f *DeclarativeFilter) storageClient(ctx context.Context, resourceType string) (store.StorageClient, error) {
-	return dataprovider.NewStorageProvider(f.data).GetStorageClient(ctx, resourceType)
+func (f *ContainerFilter) storageClient(ctx context.Context, resourceType string) (store.StorageClient, error) {
+	return dataprovider.NewStorageProvider(f.Data).GetStorageClient(ctx, resourceType)
 }
 
-func (f *DeclarativeFilter) queueClient(ctx context.Context) (queue.Client, error) {
-	return queueprovider.New(f.queue).GetClient(ctx)
+func (f *ContainerFilter) queueClient(ctx context.Context) (queue.Client, error) {
+	return queueprovider.New(f.Queue).GetClient(ctx)
 }
 
-func (f *DeclarativeFilter) statusManager(ctx context.Context) statusmanager.StatusManager {
+func (f *ContainerFilter) statusManager(ctx context.Context) statusmanager.StatusManager {
 	queueClient, err := f.queueClient(ctx)
 	if err != nil {
 		return nil
 	}
 
-	return statusmanager.New(dataprovider.NewStorageProvider(f.data), queueClient, "global")
+	return statusmanager.New(dataprovider.NewStorageProvider(f.Data), queueClient, "global")
 }

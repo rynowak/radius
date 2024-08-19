@@ -28,7 +28,7 @@ func NewModule(options modules.Options) *Module {
 	router.NotFound(validator.APINotFoundHandler())
 	router.MethodNotAllowed(validator.APIMethodNotAllowedHandler())
 
-	return &Module{options: options, router: router, defaultDownstream: options.DynamicRP.URL}
+	return &Module{options: options, router: router, defaultDownstream: options.Config.DynamicRP.URL}
 }
 
 var _ modules.Initializer = &Module{}

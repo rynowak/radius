@@ -214,12 +214,18 @@ func NewServer(options *Options) (*hosting.Host, error) {
 		K8sConfig:     cfg,
 		UCPConnection: options.UCPConnection,
 	}
-	hostingServices = append(hostingServices, backend.NewService(backendServiceOptions))
+	hostingServices = append(hostingServices, backend.NewService(backendServiceOptions, *options.Config))
 
 	hostingServices = append(hostingServices, &watcher.Service{Options: backendServiceOptions})
 	hostingServices = append(hostingServices, &notifications.Service{
 		Options:     backendServiceOptions,
 		ServiceName: "UCP notification listener",
+		Port:        7009,
+		Filter: &notifications.DeclarativeFilter{
+			UCP:   options.UCPConnection,
+			Data:  options.Config.StorageProvider,
+			Queue: options.Config.QueueProvider,
+		},
 	})
 
 	options.TracerProviderOptions.ServiceName = "ucp"

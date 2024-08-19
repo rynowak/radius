@@ -1,0 +1,159 @@
+[
+  {
+    "$type": "StringType"
+  },
+  {
+    "$type": "ObjectType",
+    "name": "binding",
+    "properties": {
+      "apiKey": {
+        "description": "The key that can be used to connect to the API.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0
+      },
+      "apiVersion": {
+        "description": "The version of the OpenAI API.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0
+      },
+      "deployment": {
+        "description": "The deployment name, used by the OpenAI SDK to connect to the API.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0
+      },
+      "endpoint": {
+        "description": "The endpoint URL of the OpenAI API.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0
+      }
+    }
+  },
+  {
+    "$type": "ObjectType",
+    "name": "status",
+    "properties": {
+      "binding": {
+        "description": "The connection values and secrets of the resource.",
+        "type": {
+          "$ref": "#/1"
+        },
+        "flags": 2
+      }
+    }
+  },
+  {
+    "$type": "ObjectType",
+    "name": "openAIServicesProperties",
+    "properties": {
+      "application": {
+        "description": "The resource ID of the application.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 1
+      },
+      "environment": {
+        "description": "The resource ID of the environment.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 1
+      },
+      "capacity": {
+        "description": "The capacity of the API. Valid values: 'S', 'M', 'L'.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0
+      },
+      "provisioningState": {
+        "description": "The status of the asynchronous operation.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 2
+      },
+      "status": {
+        "description": "The status of the resource.",
+        "type": {
+          "$ref": "#/2"
+        },
+        "flags": 2
+      }
+    }
+  },
+  {
+    "$type": "StringLiteralType",
+    "value": "2023-10-01-preview"
+  },
+  {
+    "$type": "StringLiteralType",
+    "value": "Example.Platform/openAIServices"
+  },
+  {
+    "$type": "ObjectType",
+    "name": "Example.Platform/openAIServices@2023-10-01-preview",
+    "properties": {
+      "name": {
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 17,
+        "description": "The resource name."
+      },
+      "location": {
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0,
+        "description": "The resource location."
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/3"
+        },
+        "flags": 1,
+        "description": "The resource properties."
+      },
+      "apiVersion": {
+        "type": {
+          "$ref": "#/4"
+        },
+        "flags": 10,
+        "description": "The API version."
+      },
+      "type": {
+        "type": {
+          "$ref": "#/5"
+        },
+        "flags": 10,
+        "description": "The resource type."
+      },
+      "id": {
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 2,
+        "description": "The resource id."
+      }
+    }
+  },
+  {
+    "$type": "ResourceType",
+    "name": "Example.Platform/openAIServices@2023-10-01-preview",
+    "scopeType": 0,
+    "body": {
+      "$ref": "#/6"
+    },
+    "flags": 0,
+    "functions": {}
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "name": "manifest-to-bicep",
+  "version": "0.0.1",
+  "description": "Converter from Radius type manifest to Bicep extension.",
+  "scripts": {
+    "build": "tsc -p .",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./dist/src/main.js"
+  },
+  "author": "The Radius Authors",
+  "license": "Apache License 2.0",
+  "private": true,
+  "dependencies": {
+    "bicep-types": "file:../../../../bicep-types/src/bicep-types",
+    "yaml": "^2.6.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "@types/yargs": "^17.0.33",
+    "@typescript-eslint/eslint-plugin": "^8.8.1",
+    "@typescript-eslint/parser": "^8.8.1",
+    "eslint": "^9.12.0",
+    "eslint-plugin-header": "^3.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}

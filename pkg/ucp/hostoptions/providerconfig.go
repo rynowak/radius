@@ -41,6 +41,7 @@ type UCPConfig struct {
 	Identity         Identity                                 `yaml:"identity,omitempty"`
 	UCP              config.UCPOptions                        `yaml:"ucp"`
 	Location         string                                   `yaml:"location"`
+	DynamicRP        DynamicRPConfig                          `yaml:"dynamic"`
 }
 
 const (
@@ -54,4 +55,10 @@ const (
 type Identity struct {
 	// AuthMethod represents the method of authentication for authenticating with external systems like Azure and AWS.
 	AuthMethod string `yaml:"authMethod"`
+}
+
+// DynamicRPConfig provides configuration for communicating with the DynamicRP.
+type DynamicRPConfig struct {
+	// URL is the URL of the DynamicRP.
+	URL string
 }

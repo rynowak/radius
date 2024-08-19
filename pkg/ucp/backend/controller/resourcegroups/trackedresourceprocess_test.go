@@ -41,7 +41,7 @@ func Test_Run(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		storageClient := store.NewMockStorageClient(ctrl)
 
-		pc, err := NewTrackedResourceProcessController(controller.Options{StorageClient: storageClient}, nil)
+		pc, err := NewTrackedResourceProcessController(controller.Options{StorageClient: storageClient}, nil, nil)
 		require.NoError(t, err)
 
 		updater := mockUpdater{}

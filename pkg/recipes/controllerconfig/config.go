@@ -54,6 +54,9 @@ type RecipeControllerConfig struct {
 
 	// UCPConnection is the connection to UCP
 	UCPConnection *sdk.Connection
+
+	// Dapr is the dapr client.
+	Dapr daprclient.Client
 }
 
 // New creates a new RecipeControllerConfig instance with the given host options.
@@ -75,11 +78,6 @@ func New(options hostoptions.HostOptions) (*RecipeControllerConfig, error) {
 		BaseURI:          options.UCPConnection.Endpoint(),
 		ARMClientOptions: sdk.NewClientOptions(options.UCPConnection),
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	daprClient, err := daprclient.NewClient()
 	if err != nil {
 		return nil, err
 	}
@@ -106,25 +104,37 @@ func New(options hostoptions.HostOptions) (*RecipeControllerConfig, error) {
 		options.Config.Terraform.Path = os.TempDir()
 	}
 
+	drivers := map[string]driver.Driver{
+		recipes.TemplateKindBicep: driver.NewBicepDriver(
+			clientOptions,
+			cfg.DeploymentEngineClient,
+			cfg.ResourceClient,
+			driver.BicepOptions{
+				DeleteRetryCount:        bicepDeleteRetryCount,
+				DeleteRetryDelaySeconds: bicepDeleteRetryDeleteSeconds,
+			}),
+		recipes.TemplateKindTerraform: driver.NewTerraformDriver(options.UCPConnection, provider.NewSecretProvider(options.Config.SecretProvider),
+			driver.TerraformOptions{
+				Path: options.Config.Terraform.Path,
+			}, cfg.K8sClients.ClientSet),
+	}
+
+	if options.Config.Dapr.GRPCPort != 0 {
+		daprClient, err := daprclient.NewClient()
+		if err != nil {
+			return nil, err
+		}
+
+		cfg.Dapr = daprClient
+
+		drivers[recipes.TemplateKindDaprWorkflow] = driver.NewDaprWorkflowDriver(daprClient, driver.DaprWorkflowOptions{})
+	}
+
 	cfg.ConfigLoader = configloader.NewEnvironmentLoader(clientOptions)
 	cfg.Engine = engine.NewEngine(engine.Options{
 		ConfigurationLoader: cfg.ConfigLoader,
 		SecretsLoader:       configloader.NewSecretStoreLoader(clientOptions),
-		Drivers: map[string]driver.Driver{
-			recipes.TemplateKindBicep: driver.NewBicepDriver(
-				clientOptions,
-				cfg.DeploymentEngineClient,
-				cfg.ResourceClient,
-				driver.BicepOptions{
-					DeleteRetryCount:        bicepDeleteRetryCount,
-					DeleteRetryDelaySeconds: bicepDeleteRetryDeleteSeconds,
-				}),
-			recipes.TemplateKindDaprWorkflow: driver.NewDaprWorkflowDriver(daprClient, driver.DaprWorkflowOptions{}),
-			recipes.TemplateKindTerraform: driver.NewTerraformDriver(options.UCPConnection, provider.NewSecretProvider(options.Config.SecretProvider),
-				driver.TerraformOptions{
-					Path: options.Config.Terraform.Path,
-				}, cfg.K8sClients.ClientSet),
-		},
+		Drivers:             drivers,
 	})
 
 	return cfg, nil

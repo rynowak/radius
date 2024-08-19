@@ -6,26 +6,22 @@
       "namespace": "default"
     },
     "recipes": {
-      "Contoso.Example/postgreSQLDatabases": {
+      "Applications.Datastores/redisCaches": {
         "default": {
           "templateKind": "bicep",
-          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest-counter"
-        },
-        "bicep": {
-          "templateKind": "bicep",
-          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest"
-        },
-        "counter": {
-          "templateKind": "bicep",
-          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest-counter"
-        },
-        "workflow": {
-          "templateKind": "daprWorkflow",
-          "appId": "sample",
-          "templatePath": "zzzz",
-          "putWorkflow": "PostgresSQLDatabasesPut",
-          "deleteWorkflow": "PostgresSQLDatabasesDelete"
+          "templatePath": "ghcr.io/radius-project/recipes/local-dev/rediscaches:latest"
         }
+      },
+      "Example.Platform/openAIServices": {
+        "default": {
+          "templateKind": "bicep",
+          "templatePath": "rynowak.azurecr.io/recipes/openai:latest"
+        }
+      }
+    },
+    "providers": {
+      "azure": {
+        "scope": "/subscriptions/2865c7d1-29fa-485a-8862-717377bdbf1b/resourceGroups/rynowak-devdiv-demo"
       }
     }
   },

@@ -1,0 +1,49 @@
+{
+  "location": "global",
+  "properties": {
+    "compute": {
+      "kind": "kubernetes",
+      "namespace": "default"
+    },
+    "recipes": {
+      "Example.Platform/openAIServices": {
+        "default": {
+          "templateKind": "terraform",
+          "templatePath": "git::github.com/rynowak/private-recipes",
+          "templateVersion": ""
+        }
+      },
+      "Contoso.Example/postgreSQLDatabases": {
+        "default": {
+          "templateKind": "bicep",
+          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest-password"
+        },
+        "bicep": {
+          "templateKind": "bicep",
+          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest-password"
+        },
+        "workflow": {
+          "templateKind": "daprWorkflow",
+          "appId": "sample",
+          "templatePath": "zzzz",
+          "putWorkflow": "PostgresSQLDatabasesPut",
+          "deleteWorkflow": "PostgresSQLDatabasesDelete"
+        }
+      }
+    },
+    "recipeConfig": {
+      "terraform": {
+        "authentication": {
+          "git": {
+            "pat": {
+              "github.com":{
+                "secret": "/planes/radius/local/resourceGroups/default/providers/applications.core/secretstores/recipes-pat"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": {}
+}

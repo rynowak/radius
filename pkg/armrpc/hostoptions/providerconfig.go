@@ -43,9 +43,14 @@ type ProviderConfig struct {
 	Logging          ucplog.LoggingOptions                    `yaml:"logging"`
 	Bicep            BicepOptions                             `yaml:"bicep,omitempty"`
 	Terraform        TerraformOptions                         `yaml:"terraform,omitempty"`
+	Dapr             DaprOptions                              `yaml:"dapr,omitempty"`
 
 	// FeatureFlags includes the list of feature flags.
 	FeatureFlags []string `yaml:"featureFlags"`
+}
+
+type DaprOptions struct {
+	GRPCPort int `yaml:"grpcPort,omitempty"`
 }
 
 // ServerOptions includes http server bootstrap options.

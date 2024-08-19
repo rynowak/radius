@@ -326,8 +326,9 @@ func StartWithETCD(t *testing.T, configureModules func(options modules.Options) 
 
 	statusManager := statusmanager.New(dataProvider, queueClient, v1.LocationGlobal)
 
+	// TODO: need to get the default downstream value in here.
 	registry := worker.NewControllerRegistry(dataProvider)
-	err = backend.RegisterControllers(ctx, registry, connection, http.DefaultTransport, backend_ctrl.Options{DataProvider: dataProvider})
+	err = backend.RegisterControllers(ctx, registry, connection, http.DefaultTransport, backend_ctrl.Options{DataProvider: dataProvider}, nil)
 	require.NoError(t, err)
 
 	w := worker.New(worker.Options{}, statusManager, queueClient, registry)

@@ -1,7 +1,7 @@
 {
   "location": "global",
   "properties": {
-    "application": "/planes/radius/local/resourcegroups/default/providers/Applications.Core/applications/my-test-app",
+    "application": "/planes/radius/local/resourcegroups/default/providers/Applications.Core/applications/udt-demo",
     "environment": "/planes/radius/local/resourceGroups/default/providers/applications.core/environments/default",
     "size": "Small",
     "recipe": {

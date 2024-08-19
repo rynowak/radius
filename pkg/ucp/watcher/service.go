@@ -20,6 +20,7 @@ import (
 	"context"
 	"sync"
 
+	daprclient "github.com/dapr/go-sdk/client"
 	"github.com/radius-project/radius/pkg/armrpc/hostoptions"
 )
 
@@ -38,12 +39,26 @@ func (w *Service) Name() string {
 
 // Run starts the service.
 func (w *Service) Run(ctx context.Context) error {
+	var dapr daprclient.Client
+	var err error
+
+	if w.Options.Config.Dapr.GRPCPort != 0 {
+		dapr, err = daprclient.NewClient()
+		if err != nil {
+			return err
+		}
+	}
+
 	w.kubernetes = kubernetesWatcher{
 		restConfig: w.Options.K8sConfig,
 		mutex:      &sync.Mutex{},
+		dapr:       dapr,
 	}
 
 	// Run until cancelled.
-	w.kubernetes.Run(ctx)
+	if dapr != nil {
+		w.kubernetes.Run(ctx)
+	}
+
 	return nil
 }

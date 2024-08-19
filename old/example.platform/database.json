@@ -4,7 +4,10 @@
     "application": "/planes/radius/local/resourcegroups/default/providers/Applications.Core/applications/my-test-app",
     "environment": "/planes/radius/local/resourceGroups/default/providers/applications.core/environments/default",
     "recipe": {
-      "name": "default"
+      "name": "default",
+      "paramaters": {
+        "size": "small"
+      }
     }
   }
 }

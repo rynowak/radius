@@ -1,0 +1,97 @@
+[
+  {
+    "$type": "StringType"
+  },
+  {
+    "$type": "ObjectType",
+    "name": "binding",
+    "properties": {
+      "apiKey": {
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0
+      }
+    }
+  },
+  {
+    "$type": "ObjectType",
+    "name": "status",
+    "properties": {
+      "binding": {
+        "type": {
+          "$ref": "#/1"
+        },
+        "flags": 2
+      }
+    }
+  },
+  {
+    "$type": "ObjectType",
+    "name": "openAIServicesProperties",
+    "properties": {
+      "application": {
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0
+      },
+      "environment": {
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0
+      },
+      "provisioningState": {
+        "description": "The status of the asynchronous operation.",
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 2
+      },
+      "status": {
+        "type": {
+          "$ref": "#/2"
+        },
+        "flags": 2
+      }
+    }
+  },
+  {
+    "$type": "ObjectType",
+    "name": "Example.Platform/openAIServices@2023-10-01-preview",
+    "properties": {
+      "name": {
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 17,
+        "description": "The resource name."
+      },
+      "location": {
+        "type": {
+          "$ref": "#/0"
+        },
+        "flags": 0,
+        "description": "The resource location."
+      },
+      "properties": {
+        "type": {
+          "$ref": "#/3"
+        },
+        "flags": 1,
+        "description": "The resource properties."
+      }
+    }
+  },
+  {
+    "$type": "ResourceType",
+    "name": "Example.Platform/openAIServices@2023-10-01-preview",
+    "scopeType": 0,
+    "body": {
+      "$ref": "#/4"
+    },
+    "flags": 0,
+    "functions": {}
+  }
+]

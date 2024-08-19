@@ -18,6 +18,7 @@ package deployment
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -25,9 +26,12 @@ import (
 	"strings"
 
 	v1 "github.com/radius-project/radius/pkg/armrpc/api/v1"
+	aztoken "github.com/radius-project/radius/pkg/azure/tokencredentials"
+	"github.com/radius-project/radius/pkg/cli/clients_new/generated"
 	rp_pr "github.com/radius-project/radius/pkg/rp/portableresources"
 	rp_util "github.com/radius-project/radius/pkg/rp/util"
 	rpv1 "github.com/radius-project/radius/pkg/rp/v1"
+	"github.com/radius-project/radius/pkg/sdk"
 
 	corerp_dm "github.com/radius-project/radius/pkg/corerp/datamodel"
 	"github.com/radius-project/radius/pkg/corerp/handlers"
@@ -60,8 +64,8 @@ type DeploymentProcessor interface {
 }
 
 // NewDeploymentProcessor creates a new instance of the DeploymentProcessor struct with the given parameters.
-func NewDeploymentProcessor(appmodel model.ApplicationModel, sp dataprovider.DataStorageProvider, k8sClient controller_runtime.Client, k8sClientSet kubernetes.Interface) DeploymentProcessor {
-	return &deploymentProcessor{appmodel: appmodel, sp: sp, k8sClient: k8sClient, k8sClientSet: k8sClientSet}
+func NewDeploymentProcessor(appmodel model.ApplicationModel, sp dataprovider.DataStorageProvider, k8sClient controller_runtime.Client, k8sClientSet kubernetes.Interface, ucp sdk.Connection) DeploymentProcessor {
+	return &deploymentProcessor{appmodel: appmodel, sp: sp, k8sClient: k8sClient, k8sClientSet: k8sClientSet, ucp: ucp}
 }
 
 var _ DeploymentProcessor = (*deploymentProcessor)(nil)
@@ -73,6 +77,8 @@ type deploymentProcessor struct {
 	k8sClient controller_runtime.Client
 	// k8sClientSet is the Kubernetes client.
 	k8sClientSet kubernetes.Interface
+
+	ucp sdk.Connection
 }
 
 type ResourceData struct {
@@ -486,6 +492,11 @@ func (dp *deploymentProcessor) getResourceDataByID(ctx context.Context, resource
 		return ResourceData{}, fmt.Errorf(errMsg, resourceID.String(), err)
 	}
 
+	// TODO: query dynamically.
+	if strings.EqualFold(resourceID.ProviderNamespace(), "example.platform") {
+		return dp.getResourceDataForUDTByID(ctx, resourceID)
+	}
+
 	resource, err := sc.Get(ctx, resourceID.String())
 	if err != nil {
 		if errors.Is(&store.ErrNotFound{ID: resourceID.String()}, err) {
@@ -574,9 +585,65 @@ func (dp *deploymentProcessor) getResourceDataByID(ctx context.Context, resource
 			return ResourceData{}, fmt.Errorf(errMsg, resourceID.String(), err)
 		}
 		return dp.buildResourceDependency(resourceID, obj.Properties.Application, obj, obj.Properties.Status.OutputResources, obj.ComputedValues, obj.SecretValues, portableresources.RecipeData{})
+
 	default:
 		return ResourceData{}, fmt.Errorf("unsupported resource type: %q for resource ID: %q", resourceType, resourceID.String())
 	}
+}
+
+func (dp *deploymentProcessor) getResourceDataForUDTByID(ctx context.Context, resourceID resources.ID) (ResourceData, error) {
+	client, err := generated.NewGenericResourcesClient(resourceID.RootScope(), resourceID.Type(), &aztoken.AnonymousCredential{}, sdk.NewClientOptions(dp.ucp))
+	if err != nil {
+		return ResourceData{}, err
+	}
+
+	resource, err := client.Get(ctx, resourceID.Name(), nil)
+	if err != nil {
+		return ResourceData{}, fmt.Errorf("failed to fetch the resource %q: %w", resourceID.String(), err)
+	}
+
+	properties := resource.Properties
+
+	application := ""
+	obj, ok := properties["application"]
+	if ok {
+		application, _ = obj.(string)
+	}
+
+	computedValues := map[string]any{}
+	secretValues := map[string]rpv1.SecretValueReference{}
+	outputResources := []rpv1.OutputResource{}
+	obj, ok = properties["status"]
+	if ok {
+		status, ok := obj.(map[string]any)
+		if ok {
+			obj, ok := status["binding"]
+			if ok {
+				binding, ok := obj.(map[string]any)
+				if ok {
+					for k, v := range binding {
+						computedValues[k] = v
+					}
+				}
+			}
+
+			obj, ok = status["outputResources"]
+			if ok {
+				b, err := json.Marshal(obj)
+				if err != nil {
+					return ResourceData{}, fmt.Errorf("failed to marshal output resources: %w", err)
+				}
+
+				err = json.Unmarshal(b, &outputResources)
+				if err != nil {
+					return ResourceData{}, fmt.Errorf("failed to unmarshal output resources: %w", err)
+				}
+			}
+		}
+	}
+
+	return dp.buildResourceDependency(resourceID, application, nil, outputResources, computedValues, secretValues, portableresources.RecipeData{})
+
 }
 
 func (dp *deploymentProcessor) buildResourceDependency(resourceID resources.ID, applicationID string, resource v1.DataModelInterface, outputResources []rpv1.OutputResource, computedValues map[string]any, secretValues map[string]rpv1.SecretValueReference, recipeData portableresources.RecipeData) (ResourceData, error) {
