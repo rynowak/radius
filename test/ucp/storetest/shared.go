@@ -43,7 +43,6 @@ const (
 	ResourceGroup1Scope = "/planes/radius/local/resourceGroups/group1"
 	ResourceGroup2Scope = "/planes/radius/local/resourceGroups/group2"
 	ARMResourceScope    = "/subscriptions/abc/resourceGroups/group3"
-	APIVersion          = "test-api-version"
 )
 
 var ResourceGroup1ID = parseOrPanic(ResourceGroup1Scope)
@@ -118,9 +117,7 @@ func parseOrPanic(id string) resources.ID {
 func createObject(id resources.ID, data any) store.Object {
 	return store.Object{
 		Metadata: store.Metadata{
-			ID:          id.String(),
-			APIVersion:  APIVersion,
-			ContentType: "application/json",
+			ID: id.String(),
 		},
 		Data: data,
 	}
