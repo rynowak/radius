@@ -580,6 +580,23 @@ func (dp *deploymentProcessor) getResourceDataByID(ctx context.Context, resource
 		secretValues := map[string]rpv1.SecretValueReference{}
 
 		return dp.buildResourceDependency(resourceID, obj.Properties.Application, obj, obj.Properties.Status.OutputResources, computedValues, secretValues, portableresources.RecipeData{})
+	case strings.ToLower("contoso.example/postgresqldatabases"):
+		obj := &PostgreSQLDatabase{}
+		if err = resource.As(obj); err != nil {
+			return ResourceData{}, fmt.Errorf(errMsg, resourceID.String(), err)
+		}
+		computedValues := map[string]any{
+			"database": obj.Properties.Status.Binding.Database,
+			"hostname": obj.Properties.Status.Binding.Host,
+			"password": obj.Properties.Status.Binding.Password,
+			"port":     obj.Properties.Status.Binding.Port,
+			"uri":      obj.Properties.Status.Binding.URI,
+			"username": obj.Properties.Status.Binding.Username,
+		}
+		secretValues := map[string]rpv1.SecretValueReference{}
+
+		return dp.buildResourceDependency(resourceID, obj.Properties.Application, obj, obj.Properties.Status.OutputResources, computedValues, secretValues, portableresources.RecipeData{})
+
 	default:
 		return ResourceData{}, fmt.Errorf("unsupported resource type: %q for resource ID: %q", resourceType, resourceID.String())
 	}
@@ -604,6 +621,31 @@ type GlobalDBStatus struct {
 type GlobalDBBinding struct {
 	Port     int    `json:"port"`
 	Hostname string `json:"hostname"`
+}
+
+type PostgreSQLDatabase struct {
+	v1.DataModelInterface
+	Properties PostgreSQLDatabaseProperties `json:"properties"`
+}
+
+type PostgreSQLDatabaseProperties struct {
+	Application string                   `json:"application"`
+	Environment string                   `json:"environment"`
+	Status      PostgreSQLDatabaseStatus `json:"status"`
+}
+
+type PostgreSQLDatabaseStatus struct {
+	Binding         PostgreSQLDatabaseBinding `json:"binding"`
+	OutputResources []rpv1.OutputResource     `json:"outputResources"`
+}
+
+type PostgreSQLDatabaseBinding struct {
+	Database string `json:"database"`
+	Host     string `json:"host"`
+	Password string `json:"password"`
+	Port     int    `json:"port"`
+	URI      string `json:"uri"`
+	Username string `json:"username"`
 }
 
 func (dp *deploymentProcessor) buildResourceDependency(resourceID resources.ID, applicationID string, resource v1.DataModelInterface, outputResources []rpv1.OutputResource, computedValues map[string]any, secretValues map[string]rpv1.SecretValueReference, recipeData portableresources.RecipeData) (ResourceData, error) {

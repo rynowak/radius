@@ -16,11 +16,7 @@
         },
         "bicep": {
           "templateKind": "bicep",
-          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest"
-        },
-        "counter": {
-          "templateKind": "bicep",
-          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest-counter"
+          "templatePath": "rynowak.azurecr.io/recipes/postgres:latest-password"
         },
         "workflow": {
           "templateKind": "daprWorkflow",
