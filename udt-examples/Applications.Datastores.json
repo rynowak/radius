@@ -8,7 +8,7 @@
     },
     "resourceTypes": [
       {
-        "resourceType": "pubSubBrokers",
+        "resourceType": "mongoDatabases",
         "routingType": "Provider",
         "locations": [
           "global"
@@ -22,7 +22,7 @@
         "defaultApiVersion": "2023-10-01-preview"
       },
       {
-        "resourceType": "secretStores",
+        "resourceType": "redisCaches",
         "routingType": "Provider",
         "locations": [
           "global"
@@ -36,7 +36,7 @@
         "defaultApiVersion": "2023-10-01-preview"
       },
       {
-        "resourceType": "stateStores",
+        "resourceType": "sqlDatabases",
         "routingType": "Provider",
         "locations": [
           "global"
