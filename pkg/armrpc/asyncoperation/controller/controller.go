@@ -23,6 +23,7 @@ import (
 	"github.com/radius-project/radius/pkg/ucp/dataprovider"
 	"github.com/radius-project/radius/pkg/ucp/store"
 
+	daprclient "github.com/dapr/go-sdk/client"
 	runtimeclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -42,6 +43,9 @@ type Options struct {
 
 	// GetDeploymentProcessor is the factory function to create core rp DeploymentProcessor instance.
 	GetDeploymentProcessor func() deployment.DeploymentProcessor
+
+	// Dapr is the Dapr client.
+	Dapr daprclient.Client
 }
 
 // Controller is an interface to implement async operation controller.
@@ -66,6 +70,11 @@ func NewBaseAsyncController(options Options) BaseController {
 // StorageClient gets storage client for this controller.
 func (b *BaseController) StorageClient() store.StorageClient {
 	return b.options.StorageClient
+}
+
+// Dapr gets Dapr client for this controller.
+func (b *BaseController) Dapr() daprclient.Client {
+	return b.options.Dapr
 }
 
 // DataProvider gets data storage provider for this controller.

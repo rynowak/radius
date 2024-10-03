@@ -30,6 +30,7 @@ import (
 
 // UCPConfig includes the resource provider configuration.
 type UCPConfig struct {
+	Dapr             DaprOptions                              `yaml:"dapr"`
 	StorageProvider  dataprovider.StorageProviderOptions      `yaml:"storageProvider"`
 	Planes           []rest.Plane                             `yaml:"planes"`
 	SecretProvider   provider.SecretProviderOptions           `yaml:"secretProvider"`
@@ -54,4 +55,10 @@ const (
 type Identity struct {
 	// AuthMethod represents the method of authentication for authenticating with external systems like Azure and AWS.
 	AuthMethod string `yaml:"authMethod"`
+}
+
+type DaprOptions struct {
+	StatestoreName string `yaml:"statestoreName"`
+	HTTPPort       string `yaml:"httpPort"`
+	GRPCPort       string `yaml:"grpcPort"`
 }

@@ -190,6 +190,11 @@ func NewServer(options *Options) (*hosting.Host, error) {
 	backendServiceOptions := hostopts.HostOptions{
 
 		Config: &hostopts.ProviderConfig{
+			Dapr: hostopts.DaprOptions{
+				StatestoreName: options.Config.Dapr.StatestoreName,
+				HTTPPort:       options.Config.Dapr.HTTPPort,
+				GRPCPort:       options.Config.Dapr.GRPCPort,
+			},
 			Env: hostopts.EnvironmentOptions{
 				RoleLocation: options.Config.Location,
 			},

@@ -21,3 +21,11 @@ for RESOURCE_PROVIDER in "${RESOURCE_PROVIDERS[@]}"; do
     echo "Creating tables in database $RESOURCE_PROVIDER"
     psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$RESOURCE_PROVIDER" < $SCRIPT_DIR/db.sql.txt
 done
+
+# Create database and user for Dapr
+echo "Creating database and user for Dapr"
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+    CREATE USER dapr WITH PASSWORD '$POSTGRES_PASSWORD';
+    CREATE DATABASE dapr;
+    GRANT ALL PRIVILEGES ON DATABASE dapr TO dapr;
+EOSQL

@@ -29,6 +29,7 @@ import (
 
 // ProviderConfig includes the resource provider configuration.
 type ProviderConfig struct {
+	Dapr             DaprOptions                              `yaml:"dapr"`
 	Env              EnvironmentOptions                       `yaml:"environment"`
 	Identity         IdentityOptions                          `yaml:"identity"`
 	StorageProvider  dataprovider.StorageProviderOptions      `yaml:"storageProvider"`
@@ -83,4 +84,10 @@ type BicepOptions struct {
 type TerraformOptions struct {
 	// Path is the path to the directory mounted to the container where terraform can be installed and executed.
 	Path string `yaml:"path,omitempty"`
+}
+
+type DaprOptions struct {
+	StatestoreName string `yaml:"statestoreName"`
+	HTTPPort       string `yaml:"httpPort"`
+	GRPCPort       string `yaml:"grpcPort"`
 }

@@ -19,7 +19,9 @@ package backend
 import (
 	"context"
 	"fmt"
+	"time"
 
+	daprclient "github.com/dapr/go-sdk/client"
 	v1 "github.com/radius-project/radius/pkg/armrpc/api/v1"
 	ctrl "github.com/radius-project/radius/pkg/armrpc/asyncoperation/controller"
 	"github.com/radius-project/radius/pkg/armrpc/asyncoperation/worker"
@@ -70,11 +72,22 @@ func (w *Service) Run(ctx context.Context) error {
 		}
 	}
 
-	opts := ctrl.Options{
-		DataProvider: w.StorageProvider,
+	dapr, err := daprclient.NewClientWithAddressContext(ctx, fmt.Sprintf("localhost:%s", w.Options.Config.Dapr.GRPCPort))
+	if err != nil {
+		return fmt.Errorf("failed to create Dapr client: %w", err)
 	}
 
-	err := RegisterControllers(ctx, w.Controllers, opts)
+	err = dapr.Wait(ctx, time.Second*10)
+	if err != nil {
+		return fmt.Errorf("failed to connect to Dapr sidecar: %w", err)
+	}
+
+	opts := ctrl.Options{
+		DataProvider: w.StorageProvider,
+		Dapr:         dapr,
+	}
+
+	err = RegisterControllers(ctx, w.Controllers, opts)
 	if err != nil {
 		return err
 	}
