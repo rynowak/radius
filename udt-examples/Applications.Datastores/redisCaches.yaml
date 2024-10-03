@@ -1,0 +1,16 @@
+name: 'Applications.Datastores/redisCaches'
+defaultApiVersion: '2019-05-01'
+apiVersions:
+ '2023-10-01-preview':
+  capabilities: 
+   - SupportsRecipes
+  schema:
+    properties:
+      application:
+        type: string
+      environment:
+        type: string
+      status: 
+        type: object
+      provisioningState:
+        type: string
