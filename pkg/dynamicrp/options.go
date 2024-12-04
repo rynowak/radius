@@ -32,7 +32,10 @@ import (
 	kube_rest "k8s.io/client-go/rest"
 )
 
-// Options holds the configuration options and shared services for the server.
+// Options holds the configuration options and shared services for the DyanmicRP server.
+//
+// For testability, all fields on this struct MUST be constructed from the NewOptions function without any
+// additional initialization required.
 type Options struct {
 	// Config is the configuration for the server.
 	Config *Config
